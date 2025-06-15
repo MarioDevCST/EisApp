@@ -1,0 +1,53 @@
+/* src/components/SideMenu.css */
+
+.side-menu {
+  position: fixed;
+  top: 80px; /* Inicia justo debajo del header (altura del header: 80px) */
+  left: 0; /* Posicionado en el borde izquierdo, siempre visible */
+  width: 340px; /* Ancho del menú: 380px */
+  height: calc(100% - 80px); /* Ocupa el resto de la altura de la ventana */
+  background-color: #3f51b5; /* Un azul más oscuro/morado que el header, como en la imagen */
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2); /* Sombra hacia la derecha */
+  z-index: 101; /* Debe estar por encima del contenido principal */
+  overflow-y: auto; /* Para permitir scroll si el contenido es largo */
+  border-right: 1px solid rgba(255, 255, 255, 0.1); /* Borde sutil a la derecha */
+}
+
+/* Navegación del menú */
+.side-menu-nav {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.side-menu-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.side-menu-nav li {
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.side-menu-nav li:last-child {
+  border-bottom: none;
+}
+
+.side-menu-nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.2em;
+  display: block;
+  transition: background-color 0.2s ease-in-out, padding-left 0.2s ease-in-out;
+}
+
+.side-menu-nav a:hover {
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.15
+  ); /* Un poco más oscuro al pasar el ratón */
+  padding-left: 25px;
+}

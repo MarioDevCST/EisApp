@@ -1,38 +1,87 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0; /* Asegura que no haya padding en el elemento raíz */
+}
+
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+  font-family: "Inter", sans-serif;
+  color: #333;
+  background-color: #f4f7f6;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  align-items: center; /* Centra el contenido horizontalmente en el contenedor flex */
+  /* CAMBIO CLAVE: Añade espacio en la parte superior para la cabecera fija */
+  padding-top: 80px; /* Este valor DEBE coincidir con la altura de tu cabecera */
+  box-sizing: border-box; /* Asegura que el padding se incluya en la altura total del elemento */
+}
+
+/* Ajusta el margen superior del título principal para que se ubique correctamente debajo del padding */
+.App h1 {
+  color: #2c3e50;
+  margin-top: 2rem; /* Añade espacio entre el borde superior del área de contenido de .App (que comienza después del padding-top) y el h1 */
+  margin-bottom: 2rem;
+  font-size: 2.5em;
+  font-weight: 700;
+  text-align: center;
+  width: 100%; /* Asegura que ocupe todo el ancho para centrarlo */
+}
+
+.loading,
+.error {
+  padding: 1.5rem;
+  background-color: #fee2e2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  margin: 2rem auto;
+  max-width: 500px;
+  font-weight: bold;
+}
+
+.button-container {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 2rem;
+  padding-left: 20px;
+}
+
+.create-palet-button {
+  background-color: #1a73e8;
   color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 25px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease,
+    transform 0.1s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.App-link {
-  color: #61dafb;
+.create-palet-button:hover {
+  background-color: #0d47a1;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.create-palet-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.palets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  justify-content: center;
+  margin-top: 0; /* Asegura que no haya un margen superior extra que empuje el contenido por debajo del padding */
+  width: 100%;
+  max-width: 1000px;
 }

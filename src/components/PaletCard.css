@@ -1,0 +1,103 @@
+/* src/components/PaletCard.css */
+
+.palet-card {
+  background-color: #ffffff;
+  border-radius: 15px; /* Bordes más redondeados */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* Sombra más suave y moderna */
+  overflow: hidden; /* Asegura que el contenido se ajuste a los bordes redondeados */
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  cursor: pointer; /* Indica que es interactiva */
+}
+
+.palet-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25); /* Sombra más grande al pasar el ratón */
+}
+
+/* Placeholder para la imagen superior */
+.palet-card-image-placeholder {
+  width: 100%;
+  height: 180px; /* Altura fija para la sección de la imagen */
+  background-color: #d3e7f4; /* Un color de fondo simple, como el cielo */
+  /* Puedes añadir un degradado o patrón aquí para un efecto más "paisaje" */
+  /* background: linear-gradient(to top, #c7e0f2, #d3e7f4); */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2em;
+  color: #777;
+  border-bottom: 1px solid #eee;
+}
+
+.palet-card-content {
+  padding: 15px 20px;
+  flex-grow: 1; /* Permite que el contenido ocupe el espacio restante */
+  display: flex;
+  flex-direction: column;
+}
+
+.palet-card-header {
+  display: flex;
+  justify-content: flex-end; /* Alinea la fecha a la derecha */
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+.palet-card-date {
+  font-size: 0.85em;
+  color: #777;
+  background-color: #f0f0f0; /* Fondo sutil para la fecha */
+  padding: 3px 8px;
+  border-radius: 5px;
+}
+
+.palet-card-title {
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.5em; /* Título principal más grande */
+  font-weight: bold;
+}
+
+.palet-card p {
+  margin: 5px 0;
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.3;
+}
+
+.palet-card p strong {
+  color: #2c3e50;
+  display: inline-block;
+  margin-right: 5px; /* Espacio entre etiqueta y valor */
+}
+
+/* Franja inferior para el tipo de género */
+.palet-card-footer-strip {
+  height: 25px; /* Altura de la franja */
+  width: 100%;
+  /* Los colores de fondo se añadirán dinámicamente con las clases de borde */
+}
+
+/* Colores de la franja inferior basados en tipoGenero */
+.border-tecnico {
+  background-color: #d2b4de; /* Técnico */
+}
+
+.border-congelado {
+  background-color: #aed6f1; /* Congelado */
+}
+
+.border-refrigerado {
+  background-color: #abebc6; /* Refrigerado */
+}
+
+.border-seco {
+  background-color: #f5cba7; /* Seco */
+}
+
+.border-default {
+  background-color: #cccccc; /* Color por defecto si no hay tipoGenero o es desconocido */
+}
