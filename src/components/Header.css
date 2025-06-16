@@ -11,7 +11,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 20px; /* Padding horizontal para que no toque los bordes */
+  padding: 0 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   z-index: 999;
 }
@@ -20,69 +20,81 @@
 .header-right {
   display: flex;
   align-items: center;
-  /* Subrayado: Usamos 'gap' para un espaciado consistente entre los elementos */
-  gap: 15px; /* Un poco más de espacio para mayor claridad */
+  gap: 15px;
 }
 
 .header-right {
-  /* Subrayado: Eliminamos el 'margin-right' fijo para evitar desbordamiento */
-  margin-right: 40px;
+  margin-right: 0;
 }
 
-.logo-placeholder {
-  width: 50px;
+.app-logo {
   height: 50px;
-  background-color: #3498db;
+  width: auto;
   border-radius: 8px;
-  flex-shrink: 0; /* Asegura que no se encoja */
+  flex-shrink: 0;
+  object-fit: contain;
 }
 
 .app-name {
   font-size: 1.8em;
   font-weight: bold;
   letter-spacing: 1px;
-  flex-shrink: 1; /* Permite que el texto se encoja si es necesario */
-  overflow: hidden; /* Oculta el texto que se desborda */
-  text-overflow: ellipsis; /* Añade puntos suspensivos si el texto se trunca */
-  white-space: nowrap; /* Mantiene el texto en una sola línea */
-}
-
-.user-name-placeholder {
-  font-size: 1.1em;
-  color: #ecf0f1;
-  flex-shrink: 1; /* Permite que el texto se encoja */
+  flex-shrink: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.user-icon-placeholder {
+.user-name-placeholder {
+  font-size: 1.1em;
+  color: #ecf0f1;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Estilos para la imagen de perfil del usuario */
+.user-profile-image {
   width: 40px;
   height: 40px;
-  background-color: #95a5a6;
-  border-radius: 50%;
+  border-radius: 5px; /* Subrayado: Ligero redondeo en las esquinas (antes era 50% para circular) */
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+/* Estilos para el placeholder de iniciales si no hay imagen */
+.user-initials-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 5px; /* Subrayado: Ligero redondeo en las esquinas (antes era 50% para circular) */
+  background-color: #607d8b;
   display: flex;
   justify-content: center;
   align-items: center;
   font-weight: bold;
   font-size: 1.2em;
-  color: #34495e;
-  flex-shrink: 0; /* Asegura que no se encoja */
+  color: white;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
 }
 
-/* Estilos para el botón del menú desplegable */
+/* Estilos para el botón del menú desplegable (si aún existe) */
 .menu-toggle-button {
-  background: none; /* Sin fondo */
-  border: none; /* Sin borde */
-  font-size: 2em; /* Tamaño del icono */
-  color: white; /* Color blanco para que sea visible en el fondo oscuro */
+  background: none;
+  border: none;
+  font-size: 2em;
+  color: white;
   cursor: pointer;
   padding: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease-in-out;
-  flex-shrink: 0; /* Subrayado: Esto es CRÍTICO para que el botón no se encoja ni se salga */
+  flex-shrink: 0;
 }
 
 .menu-toggle-button:hover {

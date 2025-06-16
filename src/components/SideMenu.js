@@ -1,26 +1,39 @@
 // src/components/SideMenu.jsx
 import React from "react";
-import "./SideMenu.css"; // Importa los estilos para el menú lateral
+import "./SideMenu.css";
+// Importa Link de react-router-dom para la navegación
+import { Link } from "react-router-dom";
 
-function SideMenu() {
+function SideMenu({ onLogout }) {
+  // Asegúrate de que onLogout se pasa como prop si se usa en el SideMenu
   return (
     <div className="side-menu">
       <nav className="side-menu-nav">
         <ul>
+          {/* Enlace para el Dashboard (ruta "/") */}
           <li>
-            <a href="#dashboard">Dashboard</a>
+            <Link to="/">Dashboard</Link>
           </li>
-          {/* Subrayado: Añadido el enlace de Analytics según la imagen */}
-          {/*<li><a href="#analytics">Analytics</a></li>*/}
-          {/* Puedes añadir más enlaces aquí si es necesario */}
-          {/* Por ahora, quitamos los enlaces de perfil, configuración y cerrar sesión
-              para que coincida más con la simplicidad de la imagen proporcionada.
-              Los podemos añadir de nuevo cuando se necesiten. */}
+          {/* Enlace para Mi Perfil (ruta "/profile") */}
           <li>
-            <a href="#profile">Mi Perfil</a>
+            <Link to="/profile">Mi Perfil</Link>
           </li>
-          {/* <li><a href="#settings">Configuración</a></li> */}
-          {/* <li><a href="#logout">Cerrar Sesión</a></li> */}
+          {/* Enlace para el Panel de Administración (ruta "/admin") */}
+          <li>
+            <Link to="/admin">Administración</Link>
+          </li>
+          {/* Enlace para la página de Barcos */}
+          <li>
+            <Link to="/barcos">Barcos</Link>
+          </li>
+          {/* Subrayado: Nuevo enlace para la página de Palets */}
+          <li>
+            <Link to="/palets">Palets</Link>
+          </li>
+          {/* Enlace para Cerrar Sesión (ruta "/logout") */}
+          <li>
+            <Link to="/logout">Cerrar Sesión</Link>
+          </li>
         </ul>
       </nav>
     </div>

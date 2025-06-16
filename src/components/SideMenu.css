@@ -51,3 +51,22 @@
   ); /* Un poco más oscuro al pasar el ratón */
   padding-left: 25px;
 }
+
+.logout-button {
+  background: none;
+  border: none;
+  color: white; /* Color del texto para que contraste con el fondo del SideMenu */
+  text-decoration: none;
+  font-size: 1.2em;
+  display: block; /* Para que ocupe todo el ancho como los enlaces */
+  width: 100%;
+  padding: 15px 20px; /* Mismo padding que los elementos de la lista */
+  text-align: left; /* Alinea el texto a la izquierda */
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, padding-left 0.2s ease-in-out;
+}
+
+.logout-button:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  padding-left: 25px;
+}

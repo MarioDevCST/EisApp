@@ -1,7 +1,18 @@
+/* src/App.css */
 #root {
-  max-width: 1280px;
+  /* Eliminamos el max-width para permitir que la app ocupe todo el ancho disponible del navegador */
+  /* max-width: 1280px; */
   margin: 0 auto;
-  padding: 0; /* Asegura que no haya padding en el elemento raíz */
+  padding: 0;
+  /* Añadimos box-sizing globalmente para un comportamiento predecible del modelo de caja */
+  box-sizing: border-box;
+}
+
+/* Reseteo universal para asegurar box-sizing en todos los elementos */
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
 }
 
 .App {
@@ -11,21 +22,31 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centra el contenido horizontalmente en el contenedor flex */
-  /* CAMBIO CLAVE: Añade espacio en la parte superior para la cabecera fija */
-  padding-top: 80px; /* Este valor DEBE coincidir con la altura de tu cabecera */
-  box-sizing: border-box; /* Asegura que el padding se incluya en la altura total del elemento */
+  /* `align-items: center;` está comentado, lo cual es correcto para la expansión horizontal */
+  /* Eliminado: align-items: center; */
+  padding-top: 80px; /* Espacio para la cabecera */
+  padding-left: 380px; /* Espacio para el SideMenu estático */
+  width: 100%; /* Asegura que el contenedor .App ocupe todo el ancho disponible de su padre (#root) */
 }
 
-/* Ajusta el margen superior del título principal para que se ubique correctamente debajo del padding */
-.App h1 {
+/* Estilo para el contenedor general del contenido de las páginas (DashboardPage, AdminPage, etc.) */
+.page-content {
+  width: 100%; /* Ocupa todo el ancho disponible en el área de contenido de .App */
+  display: flex;
+  flex-direction: column;
+  /* Eliminado: align-items: center; */
+  padding: 20px; /* Padding interno para las páginas (flecha verde en tu imagen) */
+}
+
+.App h1.main-title {
+  /* Selector más específico para el título principal */
   color: #2c3e50;
-  margin-top: 2rem; /* Añade espacio entre el borde superior del área de contenido de .App (que comienza después del padding-top) y el h1 */
+  margin-top: 2rem;
   margin-bottom: 2rem;
   font-size: 2.5em;
   font-weight: 700;
-  text-align: center;
-  width: 100%; /* Asegura que ocupe todo el ancho para centrarlo */
+  text-align: center; /* Mantenemos el texto centrado */
+  width: 100%; /* El título ocupa el 100% del ancho de su padre */
 }
 
 .loading,
@@ -33,20 +54,22 @@
   padding: 1.5rem;
   background-color: #fee2e2;
   color: #ef4444;
-  border: 1px solid #fecaca;
+  border: 1px solid #f5c6cb;
   border-radius: 8px;
   margin: 2rem auto;
   max-width: 500px;
   font-weight: bold;
 }
 
+/* Ajustamos el button-container para que ocupe todo el ancho disponible */
 .button-container {
   width: 100%;
-  max-width: 1000px;
+  /* `max-width` se eliminó para que se estire */
+  /* Eliminado: max-width: 1000px; */
   display: flex;
   justify-content: flex-start;
   margin-bottom: 2rem;
-  padding-left: 20px;
+  padding-left: 20px; /* Mantiene el padding interno */
 }
 
 .create-palet-button {
@@ -81,7 +104,740 @@
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 30px;
   justify-content: center;
-  margin-top: 0; /* Asegura que no haya un margen superior extra que empuje el contenido por debajo del padding */
+  margin-top: 0;
   width: 100%;
   max-width: 1000px;
+}
+
+/* Estilos para el nuevo menú superior en AdminPage */
+.admin-menu-top {
+  display: flex;
+  justify-content: center; /* Centra los botones en la fila */
+  gap: 15px; /* Espacio entre botones */
+  margin-bottom: 30px; /* Espacio debajo del menú */
+  width: 100%; /* Permite que el menú superior se estire */
+  max-width: 800px; /* Mantenemos un max-width para los botones en sí, para que no se separen demasiado */
+  padding: 15px;
+  background-color: #e0e0e0; /* Un fondo sutil para el menú */
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.admin-menu-button {
+  background-color: #607d8b; /* Un gris azulado, distinto al de crear palet */
+  color: white;
+  padding: 12px 25px; /* Unificado */
+  border: none;
+  border-radius: 25px; /* Unificado */
+  font-size: 1.1em; /* Unificado */
+  font-weight: 600; /* Unificado */
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease,
+    transform 0.1s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Unificado */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-menu-button:hover {
+  background-color: #455a64; /* Más oscuro al pasar el ratón */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Unificado */
+  transform: translateY(-2px);
+}
+
+.admin-menu-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Unificado */
+}
+
+/* Estilo para el botón activo en el menú de administración */
+.admin-menu-button.active {
+  background-color: #3f51b5; /* Color del sidebar, más oscuro para indicar selección */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos para los mensajes de carga y error de la app */
+.loading-app-message,
+.error-app-message {
+  /* Combinamos los estilos para consistencia */
+  padding: 1.5rem;
+  margin: 2rem auto;
+  max-width: 600px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 8px;
+  font-size: 1.2em;
+}
+
+.loading-app-message {
+  background-color: #e6f7ff; /* Azul claro */
+  color: #0056b3; /* Azul oscuro */
+  border: 1px solid #99d6ff;
+}
+
+.error-app-message {
+  background-color: #f8d7da; /* Rojo claro */
+  color: #721c24; /* Rojo oscuro */
+  border: 1px solid #f5c6cb;
+}
+
+/* Contenedor de logout (si se usa la ruta /logout) */
+.logout-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  margin-top: 50px;
+  padding: 30px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+}
+
+/* Nuevos estilos para la lista de usuarios */
+.user-list-container {
+  width: 100%; /* Ocupa todo el ancho disponible de su padre */
+  /* NO HAY max-width aquí para permitir que se expanda */
+  padding: 20px; /* Mantiene el padding del borde verde */
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin-top: 20px;
+}
+
+.users-table {
+  width: 100%; /* La tabla ocupará el 100% del user-list-container */
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.users-table th,
+.users-table td {
+  border: 1px solid #e0e0e0;
+  padding: 12px 15px;
+  text-align: left;
+  vertical-align: middle; /* Alinea verticalmente el contenido de las celdas */
+}
+
+.users-table th {
+  background-color: #f8f8f8;
+  color: #333;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.9em;
+}
+
+.users-table tbody tr:nth-child(even) {
+  background-color: #fbfbfb;
+}
+
+.users-table tbody tr:hover {
+  background-color: #f0f0f0;
+}
+
+.action-button {
+  background-color: #007bff;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.85em;
+  cursor: pointer;
+  margin-right: 5px;
+  transition: background-color 0.2s;
+}
+
+.action-button:hover {
+  background-color: #0056b3;
+}
+
+.edit-button {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.edit-button:hover {
+  background-color: #e0a800;
+}
+
+.delete-button {
+  background-color: #dc3545;
+}
+
+.delete-button:hover {
+  background-color: #c82333;
+}
+
+/* Contenedor del área de contenido del administrador */
+.admin-content-area {
+  width: 100%; /* Asegura que el área de contenido ocupe todo el ancho */
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+  padding: 0 20px;
+}
+
+/* Nuevos estilos para la tarjeta de perfil */
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+  margin-top: 30px;
+  gap: 20px;
+}
+
+.profile-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #3f51b5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.profile-image-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: #cccccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 3em;
+  color: #555555;
+  font-weight: bold;
+  border: 44px solid #3f51b5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.profile-details {
+  width: 100%;
+  text-align: left;
+}
+
+.profile-details p {
+  margin-bottom: 10px;
+  font-size: 1.1em;
+  color: #444;
+  line-height: 1.5;
+}
+
+.profile-details p strong {
+  color: #2c3e50;
+  margin-right: 5px;
+}
+
+/* Nuevo estilo para el botón de editar perfil */
+.profile-edit-button {
+  background-color: #1a73e8;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 25px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease,
+    transform 0.1s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  width: 100%;
+  max-width: 500px;
+  margin-top: 30px;
+}
+
+.profile-edit-button:hover {
+  background-color: #0d47a1;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.profile-edit-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos para la imagen de perfil dentro de la tabla */
+.user-table-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #e0e0e0;
+}
+
+/* Estilos para el placeholder de iniciales dentro de la tabla */
+.user-table-image-placeholder {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2em;
+  color: #888;
+  font-weight: bold;
+  border: 1px solid #e0e0e0;
+}
+
+/* Centrar contenido en la celda de la imagen */
+.user-image-cell {
+  text-align: center;
+}
+
+/* Estilos de AuthForm (reutilizados para SignupForm, LoginForm, UserEditPage, y BarcoFormPage) */
+.auth-form-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 20px; /* Ajusta según el espaciado deseado */
+}
+
+.auth-form {
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.auth-form h2 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 30px;
+  font-size: 2em;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+}
+
+.form-group input,
+.form-group select {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1em;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+  outline: none;
+}
+
+.submit-button {
+  background-color: #1a73e8;
+  color: white;
+  padding: 15px 25px;
+  border: none;
+  border-radius: 25px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease,
+    transform 0.1s ease; /* Unificado */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 10px;
+}
+
+.submit-button:hover {
+  background-color: #0d47a1;
+  transform: translateY(-2px);
+}
+
+.submit-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.error-message {
+  color: #dc3545; /* Rojo para errores */
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 15px;
+  font-size: 0.9em;
+}
+
+.success-message {
+  color: #28a745; /* Verde para mensajes de éxito */
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 15px;
+  font-size: 0.9em;
+}
+
+.image-preview-container {
+  margin-top: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px;
+  display: inline-block; /* Para que el borde se ajuste al contenido */
+  background-color: #f9f9f9;
+}
+
+.image-preview {
+  max-width: 300px; /* Ancho máximo de 300px */
+  max-height: 300px; /* Altura máxima de 300px */
+  height: auto; /* Mantiene la proporción de la imagen */
+  display: block; /* Elimina espacio extra debajo de la imagen */
+  border-radius: 5px; /* Ligeros bordes redondeados para la imagen */
+  object-fit: contain; /* Asegura que la imagen completa sea visible dentro del contenedor */
+}
+
+/* Para el botón Cancelar en los modals, si aplica */
+.cancel-button {
+  background-color: #6c757d;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: 10px;
+}
+
+.cancel-button:hover {
+  background-color: #5a6268;
+}
+
+/* Nuevos estilos para las tarjetas de carga en PaletsPage.jsx */
+/* Contenedor para las tarjetas de carga */
+.cargas-cards-container {
+  width: 100%;
+  max-width: 900px; /* Aumentado para que ocupe más ancho */
+  margin: 20px auto; /* Centra el contenedor y le da margen */
+  display: flex;
+  flex-direction: column; /* Apila las tarjetas verticalmente */
+  gap: 15px; /* Espacio entre tarjetas */
+  padding: 0 10px; /* Padding para evitar que las tarjetas toquen los bordes de la página */
+}
+
+/* Estilo para cada tarjeta de carga alargada */
+.carga-card-large {
+  background-color: #f0f0f0; /* Fondo gris claro */
+  padding: 25px 35px; /* Aumentado el padding */
+  border-radius: 12px; /* Más redondeado */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
+  display: flex;
+  flex-direction: row;
+  align-items: center; /* Alinea verticalmente los ítems al centro */
+  justify-content: space-between; /* Espacia el contenido (nombre y divs de palets) */
+  width: 100%; /* Ocupa todo el ancho del contenedor */
+  min-height: 90px; /* Altura mínima para la tarjeta */
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+    background-color 0.2s ease;
+  border-left: 8px solid #4a90e2; /* Una barra de color azul a la izquierda */
+  z-index: 1; /* Asegura que la tarjeta esté por encima de otros elementos menores */
+  position: relative; /* Necesario para que z-index funcione correctamente */
+}
+
+.carga-card-large:hover {
+  transform: translateY(-5px); /* Efecto de "levantar" más pronunciado */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  background-color: #e8e8e8; /* Ligeramente más oscuro al pasar el ratón */
+}
+/* Clase para hacer la tarjeta clicable */
+.carga-card-large.clickable-card {
+  cursor: pointer;
+}
+.carga-card-large.clickable-card:hover {
+  background-color: #e0e0e0; /* Un color ligeramente más oscuro para el hover si es clicable */
+}
+
+.carga-card-name {
+  font-size: 1.6em; /* Tamaño de fuente para el nombre de la carga */
+  font-weight: 700; /* Más negrita */
+  color: #2c3e50; /* Color oscuro para el texto */
+  text-align: left;
+  line-height: 1.3;
+  margin-right: 20px; /* Espacio entre el nombre y el contenedor de palets */
+  flex-shrink: 0; /* Evita que el nombre de la carga se encoja excesivamente */
+}
+
+/* Nuevos estilos para PaletCard.jsx */
+
+.palet-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* Asegura que la sombra del borde izquierdo no se vea cortada */
+  display: flex;
+  flex-direction: column; /* Organiza el contenido en columna */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-left: 8px solid; /* La franja de color será dinámica */
+  position: relative; /* Para posicionar elementos internos si es necesario */
+}
+
+.palet-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.palet-card-header {
+  padding: 15px 20px 10px;
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.palet-card-title {
+  font-size: 1.3em;
+  font-weight: 700;
+  color: #34495e;
+  margin: 0;
+}
+
+.palet-card-number {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #555;
+  background-color: #e0e0e0;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.palet-card-body {
+  padding: 15px 20px;
+  font-size: 0.95em;
+  color: #666;
+}
+
+.palet-card-body p {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.palet-card-body p:last-child {
+  margin-bottom: 0;
+}
+
+.palet-card-body strong {
+  color: #444;
+}
+
+.palet-card-actions {
+  margin-top: auto; /* Empuja el contenedor de acciones al final */
+  padding: 10px;
+  background-color: #f0f0f0; /* Fondo para la sección del botón */
+  border-top: 1px solid #eee;
+  display: flex; /* Para centrar o alinear el botón */
+  justify-content: center; /* Centra el botón horizontalmente */
+  align-items: center;
+}
+
+.palet-edit-button {
+  background-color: #4a90e2; /* Azul vibrante */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
+  width: 90%; /* Ocupa casi todo el ancho disponible en la sección de acciones */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.palet-edit-button:hover {
+  background-color: #357bd8; /* Azul más oscuro al pasar el ratón */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.palet-edit-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Nuevos estilos para los divs de palets asociados dentro de las tarjetas de carga */
+.associated-pallets-display {
+  display: flex;
+  flex-wrap: wrap; /* Permite que los elementos se envuelvan a la siguiente línea */
+  gap: 10px; /* Espacio entre los pequeños divs de palets */
+  margin-left: 20px; /* Pequeño espacio desde el nombre de la carga */
+  justify-content: flex-end; /* Alinea los palets a la derecha dentro de la tarjeta */
+  flex-grow: 1; /* Permite que este contenedor ocupe el espacio disponible */
+}
+
+.associated-pallet-id {
+  /* Estilo para el ID de palet */
+  font-size: 0.9em;
+  /* Eliminados los colores fijos, ahora se aplican dinámicamente en JSX */
+  padding: 5px 10px;
+  border-radius: 5px;
+  white-space: nowrap;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.no-palets-message {
+  font-size: 0.9em;
+  color: #888;
+  font-style: italic;
+}
+
+/* Nuevos estilos para CargaDetailPage.jsx */
+.detail-card {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  max-width: 800px; /* Ancho máximo para la tarjeta de detalles */
+  width: 100%;
+  margin: 20px auto; /* Centrar y dar margen */
+}
+
+.detail-card h3 {
+  color: #34495e;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  font-size: 1.8em;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+}
+
+.detail-card p {
+  margin-bottom: 10px;
+  font-size: 1.1em;
+  color: #555;
+}
+
+.detail-card p strong {
+  color: #2c3e50;
+}
+
+.associated-pallets-detail-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px; /* Espacio entre los divs de palets en la página de detalle */
+  margin-top: 15px;
+}
+
+.associated-pallet-div-detail {
+  padding: 10px 15px;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  font-size: 1em;
+  text-align: center;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 120px; /* Ancho mínimo más grande para los detalles */
+}
+
+.associated-pallet-div-detail:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos para el modal general */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Fondo semi-transparente oscuro */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Asegura que esté por encima de todo */
+  backdrop-filter: blur(5px); /* Efecto de desenfoque opcional */
+}
+
+.modal-content {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+  max-width: 550px; /* Ancho máximo para el modal */
+  width: 90%; /* Ajuste responsivo */
+  max-height: 90vh; /* Altura máxima para el modal */
+  overflow-y: auto; /* Permite scroll si el contenido es largo */
+  animation: fadeIn 0.3s ease-out; /* Animación de aparición */
+}
+
+/* Animación de aparición del modal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-close-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 2em;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.modal-close-button:hover {
+  color: #333;
+  transform: rotate(90deg);
+}
+
+/* Ajustes específicos para el formulario dentro del modal si es necesario */
+.modal-content .auth-form {
+  padding: 0; /* Elimina el padding extra del auth-form si ya está en el modal-content */
+  box-shadow: none; /* Elimina la sombra del auth-form si ya está en el modal-content */
+  max-width: none; /* Permite que el formulario ocupe el ancho del modal */
+}
+
+/* Asegurar que los inputs en el modal se vean bien */
+.modal-content .form-group input,
+.modal-content .form-group select {
+  width: 100%; /* Asegura que ocupen todo el ancho disponible en el modal */
 }

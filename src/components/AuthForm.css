@@ -1,0 +1,136 @@
+/* src/components/AuthForm.css */
+
+.auth-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Asegura que el contenedor ocupe la altura restante sin el header */
+  min-height: calc(100vh - 80px);
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: #f0f2f5; /* Un fondo suave para las páginas de autenticación */
+  width: 100%; /* Asegura que ocupe el ancho disponible */
+}
+
+.auth-form-container {
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.auth-form h2 {
+  margin-top: 0;
+  margin-bottom: 30px;
+  color: #333;
+  font-size: 2em;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #555;
+  font-size: 0.95em;
+}
+
+.form-group input,
+.form-group select {
+  /* También aplica estilos a los select */
+  width: calc(100% - 24px); /* Ancho completo menos padding */
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1em;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.2);
+}
+
+.submit-button {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.submit-button:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.error-message {
+  color: #dc3545; /* Rojo para errores */
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 15px;
+  font-size: 0.9em;
+}
+
+.success-message {
+  color: #28a745; /* Verde para mensajes de éxito */
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 15px;
+  font-size: 0.9em;
+}
+
+.image-preview-container {
+  margin-top: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px;
+  display: inline-block; /* Para que el borde se ajuste al contenido */
+  background-color: #f9f9f9;
+}
+
+.image-preview {
+  max-width: 300px; /* Subrayado: Ancho máximo de 300px */
+  max-height: 300px; /* Subrayado: Altura máxima de 300px */
+  height: auto; /* Mantiene la proporción de la imagen */
+  display: block; /* Elimina espacio extra debajo de la imagen */
+  border-radius: 5px; /* Ligeros bordes redondeados para la imagen */
+  object-fit: contain; /* Asegura que la imagen completa sea visible dentro del contenedor */
+}
+
+/* Para el botón Cancelar en los modals, si aplica */
+.cancel-button {
+  background-color: #6c757d;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: 10px;
+}
+
+.cancel-button:hover {
+  background-color: #5a6268;
+}

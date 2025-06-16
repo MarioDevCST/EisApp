@@ -1,58 +1,101 @@
 // src/components/PaletCard.jsx
-import React from "react";
-import "./PaletCard.css";
+import React, { useState, useEffect } from "react"; // Subrayado: Importa useState y useEffect
+import { useNavigate } from "react-router-dom"; // Para la navegación
+import { db } from "../db/firebase-config"; // Subrayado: Importa la instancia de Firestore
+import { doc, getDoc } from "firebase/firestore"; // Subrayado: Importa doc y getDoc
+import "../App.css"; // Importa estilos generales, incluyendo los nuevos para la tarjeta
 
 function PaletCard({ palet }) {
-  // Función para obtener el color de la franja según el tipo de género
-  const getBorderColorClass = (tipoGenero) => {
+  const navigate = useNavigate();
+  // Subrayado: Nuevo estado para almacenar el nombre de la carga asociada
+  const [cargaNombre, setCargaNombre] = useState("");
+  // Subrayado: Estado para controlar la carga del nombre de la carga
+  const [loadingCargaNombre, setLoadingCargaNombre] = useState(true);
+
+  // Efecto para obtener el nombre de la carga asociada
+  useEffect(() => {
+    const fetchCargaNombre = async () => {
+      if (palet.cargaAsociadaId) {
+        try {
+          setLoadingCargaNombre(true);
+          const cargaDocRef = doc(db, "Cargas", palet.cargaAsociadaId);
+          const cargaDocSnap = await getDoc(cargaDocRef);
+          if (cargaDocSnap.exists()) {
+            setCargaNombre(
+              cargaDocSnap.data().nombreCarga || "Carga sin nombre"
+            );
+          } else {
+            setCargaNombre("Carga no encontrada");
+          }
+        } catch (error) {
+          console.error("Error al obtener el nombre de la carga:", error);
+          setCargaNombre("Error al cargar carga");
+        } finally {
+          setLoadingCargaNombre(false);
+        }
+      } else {
+        // Si no hay carga asociada, establece un mensaje predeterminado
+        setCargaNombre("No asociada");
+        setLoadingCargaNombre(false);
+      }
+    };
+
+    fetchCargaNombre();
+  }, [palet.cargaAsociadaId]); // Re-ejecuta cuando la ID de la carga asociada cambia
+
+  // Función para determinar el color de la franja según el tipo de género
+  const getBorderColor = (tipoGenero) => {
     switch (tipoGenero) {
       case "Tecnico":
-        return "border-tecnico"; // Clase CSS para el color Técnico
+        return "#3498db"; // Azul para técnico
       case "Congelado":
-        return "border-congelado"; // Clase CSS para el color Congelado
+        return "#27ae60"; // Verde para congelado
       case "Refrigerado":
-        return "border-refrigerado"; // Clase CSS para el color Refrigerado
+        return "#f39c12"; // Naranja para refrigerado
       case "Seco":
-        return "border-seco"; // Clase CSS para el color Seco
+        return "#e74c3c"; // Rojo para seco
       default:
-        return "border-default"; // Clase por defecto si no coincide
+        return "#95a5a6"; // Gris por defecto
     }
   };
 
-  // Construimos la clase completa para el borde dinámico
-  const cardBorderClass = getBorderColorClass(palet.tipoGenero);
+  // Función para manejar el clic en el botón de Editar
+  const handleEditClick = () => {
+    // Aquí puedes redirigir a una página de edición específica para palets
+    // Por ahora, solo un log. Deberías crear una ruta como '/editpalet/:paletId'
+    console.log(`Editar palet con ID: ${palet.id}`);
+    // navigate(`/editpalet/${palet.id}`); // Esto sería un paso futuro
+  };
 
   return (
-    // Agregamos la clase de borde dinámico aquí
-    <div className={`palet-card ${cardBorderClass}`}>
-      {/* Nuevo div para el color de fondo de la imagen, por ahora solo un color */}
-      <div className="palet-card-image-placeholder">
-        {/* Aquí iría la imagen. Por ahora, solo un div de color */}
+    <div
+      className="palet-card"
+      style={{ borderLeftColor: getBorderColor(palet.tipoGenero) }}
+    >
+      <div className="palet-card-header">
+        <h3 className="palet-card-title">{palet.nombreBarco || "Barco N/A"}</h3>
+        <span className="palet-card-number">
+          Nº {palet.numeroPalet || "N/A"}
+        </span>
       </div>
-
-      <div className="palet-card-content">
-        {/* Aquí se parece a la imagen de la tarjeta que me adjuntaste, con un "Post One" */}
-        <div className="palet-card-header">
-          <span className="palet-card-date">{palet.fechaCarga}</span>{" "}
-          {/* Fecha arriba a la derecha */}
-        </div>
-        <h3 className="palet-card-title">{palet.nombreBarco}</h3>
-
+      <div className="palet-card-body">
         <p>
-          <strong>Tipo de Palet:</strong> {palet.tipoPalet}
+          <strong>Tipo:</strong> {palet.tipoPalet || "N/A"}
+        </p>
+        {/* Subrayado: Reemplazado Fecha Carga por Carga Asociada */}
+        <p>
+          <strong>Carga Asociada:</strong>{" "}
+          {loadingCargaNombre ? "Cargando..." : cargaNombre}
         </p>
         <p>
-          <strong>Número de Palet:</strong> {palet.numeroPalet}
-        </p>
-        {/* Mostramos el nuevo campo tipoGenero */}
-        <p>
-          <strong>Tipo de Género:</strong> {palet.tipoGenero}
+          <strong>Género:</strong> {palet.tipoGenero || "N/A"}
         </p>
       </div>
-
-      {/* Franja inferior con el color de género */}
-      <div className={`palet-card-footer-strip ${cardBorderClass}`}>
-        {/* Aquí puedes añadir información si lo deseas, o dejarlo vacío para que sea solo la franja de color */}
+      {/* Nuevo contenedor para el botón de acción */}
+      <div className="palet-card-actions">
+        <button className="palet-edit-button" onClick={handleEditClick}>
+          Editar
+        </button>
       </div>
     </div>
   );

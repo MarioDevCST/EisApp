@@ -1,106 +1,156 @@
 // src/App.jsx
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
-import { db } from "./db/firebase-config"; // Asegúrate de que esta ruta sea correcta
-import { collection, getDocs, addDoc } from "firebase/firestore";
-import PaletCard from "./components/PaletCard";
-import PaletFormModal from "./components/PaletFormModal";
-import Header from "./components/Header"; // Importa el componente Header
+// Importaciones de Firebase Auth y Firestore
+import { auth, db } from "./db/firebase-config";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+
+// Importaciones de componentes de diseño y formulario
+import Header from "./components/Header";
 import SideMenu from "./components/SideMenu";
 
-function App() {
-  const [palets, setPalets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  // NOTA: El estado 'showSideMenu' y la función 'toggleSideMenu' NO están aquí,
-  // ya que esta es la versión anterior a la integración del menú lateral.
+// Importaciones de React Router DOM
+// CAMBIO CLAVE: BrowserRouter ha sido eliminado de aquí.
+// Se asume que tu archivo main.jsx o index.js ya envuelve App en un BrowserRouter.
+import { Routes, Route, Navigate } from "react-router-dom";
 
-  const fetchPalets = async () => {
-    try {
-      setLoading(true);
-      const querySnapshot = await getDocs(collection(db, "Palets"));
-      const paletsList = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setPalets(paletsList);
-      setLoading(false);
-    } catch (err) {
-      setError("Error al cargar los datos de palets: " + err.message);
-      setLoading(false);
-      console.error("Error fetching palets:", err);
-    }
-  };
+// Importaciones de componentes de página (desde src/components/pages)
+import DashboardPage from "./components/pages/DashboardPage";
+import ProfilePage from "./components/pages/ProfilePage";
+import AdminPage from "./components/pages/AdminPage";
+import LoginPage from "./components/pages/LoginPage";
+import SignupPage from "./components/pages/SignupPage";
+import UserEditPage from "./components/pages/UserEditPage";
+import BarcoFormPage from "./components/pages/BarcoFormPage";
+import BarcoEditPage from "./components/pages/BarcoEditPage";
+import CargaFormPage from "./components/pages/CargaFormPage";
+import CargaEditPage from "./components/pages/CargaEditPage";
+import PaletsPage from "./components/pages/PaletsPage";
+// ¡IMPORTANTE! Importa el componente CargaDetailPage
+import CargaDetailPage from "./components/pages/CargaDetailPage";
+
+import PaletList from "./components/PaletList";
+
+function App() {
+  const [user, setUser] = useState(null); // Estado para el usuario autenticado (de Firebase Auth)
+  const [userProfile, setUserProfile] = useState(null); // Estado para los datos del perfil (de Firestore)
+  const [loadingAuth, setLoadingAuth] = useState(true); // Estado para saber si la autenticación está cargando
 
   useEffect(() => {
-    fetchPalets();
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser); // Actualiza el estado 'user'
+      if (currentUser) {
+        // Si hay un usuario, intenta obtener su perfil de Firestore
+        try {
+          const userDocRef = doc(db, "users", currentUser.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            setUserProfile(userDocSnap.data());
+          } else {
+            // Si no se encuentra el documento del perfil, al menos usa los datos básicos del usuario de Auth
+            setUserProfile({
+              email: currentUser.email,
+              nombre: "Usuario",
+              primerApellido: "",
+            });
+          }
+        } catch (error) {
+          console.error("Error al obtener el perfil de usuario:", error);
+          setUserProfile({
+            email: currentUser.email,
+            nombre: "Error",
+            primerApellido: "",
+          });
+        }
+      } else {
+        setUserProfile(null); // Si no hay usuario, el perfil es nulo
+      }
+      setLoadingAuth(false); // La carga de autenticación ha terminado
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const handleCreatePalet = async (newPaletData) => {
+  const handleLogout = async () => {
     try {
-      await addDoc(collection(db, "Palets"), newPaletData);
-      console.log("Palet añadido con éxito!");
-      setShowModal(false);
-      fetchPalets();
+      await signOut(auth);
+      console.log("Sesión cerrada con éxito!");
     } catch (err) {
-      console.error("Error al añadir el palet:", err);
-      alert("Hubo un error al guardar el palet: " + err.message);
+      console.error("Error al cerrar sesión:", err);
+      console.log("Error al cerrar sesión: " + err.message);
     }
   };
 
-  // NOTA: La función 'toggleSideMenu' NO está definida aquí.
-
-  if (loading) {
+  if (loadingAuth) {
     return (
       <div className="App">
-        <Header /> {/* Renderiza el Header */}
-        <div className="loading">Cargando palets...</div>
-        {/* El SideMenu NO se renderiza aquí */}
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="App">
-        <Header /> {/* Renderiza el Header */}
-        <div className="error">Error: {error}</div>
-        {/* El SideMenu NO se renderiza aquí */}
+        <Header user={null} userProfile={null} />
+        <div className="loading-app-message">
+          Cargando aplicación y autenticación...
+        </div>
       </div>
     );
   }
 
   return (
+    // CAMBIO CLAVE: El div App ahora contiene directamente los componentes y las rutas.
+    // El BrowserRouter debe estar en un nivel superior (main.jsx/index.js).
     <div className="App">
-      {/* Renderiza el componente Header al inicio del App */}
-      {/* NOTA: No se le pasa la prop 'onMenuToggle' al Header en esta versión. */}
-      <Header />
-      <SideMenu />
-      {/* El resto del contenido de la app */}
-      <h1 className="main-title">Inventario de Palets</h1>
-      <div className="button-container">
-        <button
-          className="create-palet-button"
-          onClick={() => setShowModal(true)}
-        >
-          Crear Palet
-        </button>
-      </div>
-      <div className="palets-grid">
-        {palets.length > 0 ? (
-          palets.map((palet) => <PaletCard key={palet.id} palet={palet} />)
-        ) : (
-          <p>No hay palets registrados en la base de datos.</p>
-        )}
-      </div>
+      {/* Pasa el objeto 'user' y 'userProfile' al Header */}
+      <Header user={user} userProfile={userProfile} />
 
-      <PaletFormModal
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        onSave={handleCreatePalet}
-      />
-      {/* El SideMenu NO se renderiza aquí en esta versión. */}
+      {/* El SideMenu se mostrará solo si el usuario está logueado */}
+      {user && <SideMenu onLogout={handleLogout} />}
+
+      <Routes>
+        {/* Rutas Públicas: Accesibles si NO hay usuario logueado */}
+        {!user ? (
+          <>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/createuser" element={<SignupPage />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </>
+        ) : (
+          // Rutas Protegidas: Accesibles si el usuario SÍ está logueado
+          <>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/createuser" element={<SignupPage />} />
+            <Route path="/edituser/:userId" element={<UserEditPage />} />
+            <Route path="/createbarco" element={<BarcoFormPage />} />
+            <Route path="/editbarco/:barcoId" element={<BarcoEditPage />} />
+            <Route path="/createcarga" element={<CargaFormPage />} />
+            <Route path="/editcarga/:cargaId" element={<CargaEditPage />} />
+            <Route path="/palets" element={<PaletsPage />} />
+            <Route path="/prueba" element={<PaletList />} />
+            {/* ¡NUEVA RUTA! para la página de detalle de carga */}
+            <Route
+              path="/cargadetailpage/:cargaId"
+              element={<CargaDetailPage />}
+            />
+
+            <Route
+              path="/logout"
+              element={
+                <div className="page-content logout-container">
+                  <p>
+                    ¿Estás seguro de que quieres cerrar sesión, {user.email}?
+                  </p>
+                  <button className="submit-button" onClick={handleLogout}>
+                    Cerrar Sesión
+                  </button>
+                </div>
+              }
+            />
+
+            <Route path="/login" element={<Navigate to="/" replace />} />
+
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </>
+        )}
+      </Routes>
     </div>
   );
 }
