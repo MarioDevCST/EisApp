@@ -841,3 +841,13 @@
 .modal-content .form-group select {
   width: 100%; /* Asegura que ocupen todo el ancho disponible en el modal */
 }
+/* En App.css o en un CSS específico para las tarjetas de palet */
+.clickable-palet {
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.clickable-palet:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

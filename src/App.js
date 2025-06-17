@@ -11,8 +11,8 @@ import Header from "./components/Header";
 import SideMenu from "./components/SideMenu";
 
 // Importaciones de React Router DOM
-// CAMBIO CLAVE: BrowserRouter ha sido eliminado de aquí.
-// Se asume que tu archivo main.jsx o index.js ya envuelve App en un BrowserRouter.
+// CAMBIO CLAVE: BrowserRouter HA SIDO ELIMINADO DE AQUÍ.
+// El único BrowserRouter debe estar en src/main.jsx (o index.js).
 import { Routes, Route, Navigate } from "react-router-dom";
 
 // Importaciones de componentes de página (desde src/components/pages)
@@ -27,10 +27,11 @@ import BarcoEditPage from "./components/pages/BarcoEditPage";
 import CargaFormPage from "./components/pages/CargaFormPage";
 import CargaEditPage from "./components/pages/CargaEditPage";
 import PaletsPage from "./components/pages/PaletsPage";
-// ¡IMPORTANTE! Importa el componente CargaDetailPage
 import CargaDetailPage from "./components/pages/CargaDetailPage";
+import PaletDetailPage from "./components/pages/PaletDetailPage"; // Importa la página de detalle de palet
+// ELIMINADO: import ProductPage from "./components/pages/ProductPage"; // Ya no es necesaria aquí
 
-import PaletList from "./components/PaletList";
+import PaletList from "./components/PaletList"; // Este es tu componente de listado de palets
 
 function App() {
   const [user, setUser] = useState(null); // Estado para el usuario autenticado (de Firebase Auth)
@@ -95,7 +96,7 @@ function App() {
 
   return (
     // CAMBIO CLAVE: El div App ahora contiene directamente los componentes y las rutas.
-    // El BrowserRouter debe estar en un nivel superior (main.jsx/index.js).
+    // El BrowserRouter DEBE estar en un nivel superior (main.jsx/index.js).
     <div className="App">
       {/* Pasa el objeto 'user' y 'userProfile' al Header */}
       <Header user={user} userProfile={userProfile} />
@@ -116,6 +117,16 @@ function App() {
           <>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/palets" element={<PaletsPage />} />
+            <Route
+              path="/cargadetailpage/:cargaId"
+              element={<CargaDetailPage />}
+            />
+            <Route
+              path="/paletdetailpage/:paletId"
+              element={<PaletDetailPage />}
+            />{" "}
+            {/* Ruta para PaletDetailPage */}
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/createuser" element={<SignupPage />} />
             <Route path="/edituser/:userId" element={<UserEditPage />} />
@@ -123,14 +134,12 @@ function App() {
             <Route path="/editbarco/:barcoId" element={<BarcoEditPage />} />
             <Route path="/createcarga" element={<CargaFormPage />} />
             <Route path="/editcarga/:cargaId" element={<CargaEditPage />} />
-            <Route path="/palets" element={<PaletsPage />} />
             <Route path="/prueba" element={<PaletList />} />
-            {/* ¡NUEVA RUTA! para la página de detalle de carga */}
             <Route
-              path="/cargadetailpage/:cargaId"
-              element={<CargaDetailPage />}
-            />
-
+              path="/createproduct"
+              element={<p>Formulario para Crear Producto (PENDIENTE)</p>}
+            />{" "}
+            {/* Ruta placeholder para crear producto */}
             <Route
               path="/logout"
               element={
@@ -144,9 +153,7 @@ function App() {
                 </div>
               }
             />
-
             <Route path="/login" element={<Navigate to="/" replace />} />
-
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
         )}

@@ -1,9 +1,10 @@
 // src/components/pages/AdminPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import UserListPage from "./UserListPage"; // Asume que este es el componente de la lista de usuarios
+import UserListPage from "./UserListPage"; // Ruta ajustada
 import BarcosPage from "./BarcosPage"; // Importa el componente BarcosPage
 import CargasPage from "./CargasPage"; // Importa el nuevo componente CargasPage
+import ProductPage from "./ProductPage"; // ¡IMPORTACIÓN DE PRODUCTPAGE!
 import "../../App.css"; // Estilos generales
 
 function AdminPage() {
@@ -76,7 +77,6 @@ function AdminPage() {
         >
           Gestionar Barcos
         </button>
-        {/* Nuevo botón para "Gestionar Cargas" */}
         <button
           className={`admin-menu-button ${
             activeSection === "cargas" ? "active" : ""
@@ -84,6 +84,15 @@ function AdminPage() {
           onClick={() => handleMenuClick("cargas")}
         >
           Gestionar Cargas
+        </button>
+        {/* Nuevo botón para "Gestionar Producto" */}
+        <button
+          className={`admin-menu-button ${
+            activeSection === "productos" ? "active" : ""
+          }`}
+          onClick={() => handleMenuClick("productos")}
+        >
+          Gestionar Producto
         </button>
       </div>
 
@@ -108,10 +117,9 @@ function AdminPage() {
         {activeSection === "palets" && (
           <p>Aquí se gestionarán los palets. (Funcionalidad pendiente)</p>
         )}
-        {/* BarcosPage se renderiza condicionalmente aquí cuando activeSection es 'barcos' */}
         {activeSection === "barcos" && <BarcosPage />}
-        {/* CargasPage se renderiza condicionalmente aquí cuando activeSection es 'cargas' */}
         {activeSection === "cargas" && <CargasPage />}
+        {activeSection === "productos" && <ProductPage />}
       </div>
     </div>
   );

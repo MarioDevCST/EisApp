@@ -149,6 +149,11 @@ function CargaDetailPage() {
     }
   };
 
+  // Subrayado: Nueva función para manejar el clic en un palet individual
+  const handlePaletClick = (paletId) => {
+    navigate(`/paletdetailpage/${paletId}`);
+  };
+
   if (loading) {
     return <div className="loading">Cargando detalles de la carga...</div>;
   }
@@ -210,9 +215,10 @@ function CargaDetailPage() {
             carga.associatedPaletsData.map((palet) => (
               <div
                 key={palet.id}
-                className="associated-pallet-div-detail"
+                className="associated-pallet-div-detail clickable-palet" // Añade la clase 'clickable-palet'
                 style={{ backgroundColor: getPaletColor(palet.tipoGenero) }}
                 title={`Palet Nº ${palet.numeroPalet} (${palet.tipoGenero})`}
+                onClick={() => handlePaletClick(palet.id)} // Agrega el evento onClick
               >
                 Nº {palet.numeroPalet || "N/A"} - Tipo:{" "}
                 {palet.tipoPalet || "N/A"}

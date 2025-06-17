@@ -1,7 +1,10 @@
 // src/components/CargaPaletFormModal.jsx
 import React, { useState, useEffect } from "react";
-import "../App.css"; // Importa estilos generales, incluyendo los de formularios
+import "./PaletFormModal.css"; // Asegúrate de que los estilos existan
+import { db } from "../db/firebase-config"; // Importa la instancia de Firestore
+import { collection, getDocs, query, where } from "firebase/firestore"; // CAMBIO: Importa query y where para filtrar
 
+// Subrayado: CargaPaletFormModal ahora recibe props de la carga a la que se asocia
 function CargaPaletFormModal({
   show,
   onClose,
@@ -10,26 +13,61 @@ function CargaPaletFormModal({
   cargaNombreBarco,
   cargaFecha,
 }) {
+  // Estado para los campos que el usuario introducirá
   const [formData, setFormData] = useState({
-    numeroPalet: "",
-    tipoGenero: "Seco", // Valor por defecto
-    tipoPalet: "Europeo", // Valor por defecto
-    fechaCarga: cargaFecha || "", // Establece la fecha de carga de la carga como predeterminada
-    nombreBarco: cargaNombreBarco || "", // Establece el nombre del barco de la carga como predeterminado
-    cargaAsociadaId: cargaId, // Asocia automáticamente con la carga actual
+    tipoPalet: "Europeo", // CAMBIO: Valor por defecto para el desplegable de Tipo de Palet
+    tipoGenero: "Tecnico", // Valor por defecto
   });
+
+  // Nuevo estado para el número de palet correlativo
+  const [nextPaletNumber, setNextPaletNumber] = useState(null);
+
+  const [loadingNumeroPalet, setLoadingNumeroPalet] = useState(true);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
-  // Sincroniza los datos de la carga si cambian las props
+  // Efecto para calcular el próximo número de palet al abrir el modal
   useEffect(() => {
-    setFormData((prevData) => ({
-      ...prevData,
-      fechaCarga: cargaFecha || "",
-      nombreBarco: cargaNombreBarco || "",
-      cargaAsociadaId: cargaId,
-    }));
-  }, [cargaId, cargaNombreBarco, cargaFecha]);
+    const fetchNextPaletNumber = async () => {
+      setLoadingNumeroPalet(true);
+      setError("");
+      try {
+        // CAMBIO CLAVE: Consulta solo los palets asociados a esta carga específica
+        const paletsCollectionRef = collection(db, "Palets");
+        const q = query(
+          paletsCollectionRef,
+          where("cargaAsociadaId", "==", cargaId)
+        ); // Filtra por cargaId
 
+        const querySnapshot = await getDocs(q); // Ejecuta la consulta filtrada
+
+        // Se obtiene la cantidad de documentos (palets) en el querySnapshot y se le suma 1
+        const countOfPalets = querySnapshot.size;
+        setNextPaletNumber(countOfPalets + 1);
+
+        setLoadingNumeroPalet(false);
+      } catch (err) {
+        console.error("Error al obtener el número de palet correlativo:", err);
+        setError("Error al cargar el número de palet: " + err.message);
+        setLoadingNumeroPalet(false);
+        setNextPaletNumber("Error"); // Mostrar "Error" si no se pudo cargar
+      }
+    };
+
+    if (show) {
+      // Solo ejecutar cuando el modal está visible
+      fetchNextPaletNumber();
+      // Reiniciar el formulario y los mensajes/errores al abrir el modal
+      setFormData({
+        tipoPalet: "Europeo", // CAMBIO: Restablecer al valor por defecto del desplegable
+        tipoGenero: "Tecnico",
+      });
+      setError("");
+      setMessage("");
+    }
+  }, [show, cargaId]); // CAMBIO: Añade cargaId como dependencia, ya que la consulta depende de ello
+
+  // Maneja los cambios en los inputs del formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -38,84 +76,65 @@ function CargaPaletFormModal({
     }));
   };
 
+  // Maneja el envío del formulario
   const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
+    setMessage("");
 
-    // Validaciones básicas
-    if (
-      !formData.numeroPalet ||
-      isNaN(formData.numeroPalet) ||
-      parseInt(formData.numeroPalet) <= 0
-    ) {
-      setError("El número de palet debe ser un número positivo.");
-      return;
-    }
-    // Subrayado: Las validaciones de fechaCarga y nombreBarco ya no son necesarias aquí,
-    // porque los campos están deshabilitados y se pre-rellenan.
-    if (!formData.tipoGenero || !formData.tipoPalet) {
-      setError("Todos los campos obligatorios deben ser rellenados.");
+    if (nextPaletNumber === null || nextPaletNumber === "Error") {
+      setError("El número de palet no se ha podido generar correctamente.");
       return;
     }
 
-    onSave(formData); // Llama a la función onSave pasada por props
-    // Reinicia el formulario después de guardar (opcional, podrías querer mantenerlo abierto para más palets)
-    setFormData({
-      numeroPalet: "",
-      tipoGenero: "Seco",
-      tipoPalet: "Europeo",
-      fechaCarga: cargaFecha || "",
-      nombreBarco: cargaNombreBarco || "",
+    // Construir el objeto del nuevo palet combinando datos del formulario,
+    // de las props de la carga y el número autogenerado.
+    const paletToSave = {
+      // Datos heredados de la carga (pasados como props)
       cargaAsociadaId: cargaId,
-    });
+      nombreBarco: cargaNombreBarco,
+      fechaCarga: cargaFecha,
+      // Número de palet autogenerado
+      numeroPalet: nextPaletNumber,
+      // Datos introducidos por el usuario
+      tipoPalet: formData.tipoPalet,
+      tipoGenero: formData.tipoGenero,
+      createdAt: new Date(), // Opcional: añadir fecha de creación
+    };
+
+    onSave(paletToSave); // Llama a la función onSave pasada desde el componente padre
+    // No reseteamos el número de palet aquí porque se recalculará al reabrir el modal
   };
 
+  // Si 'show' es falso, no renderizamos el modal
   if (!show) {
-    return null; // No renderiza el modal si 'show' es false
+    return null;
   }
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <button className="modal-close-button" onClick={onClose}>
-          &times;
-        </button>
-        <form onSubmit={handleSubmit} className="auth-form">
-          {" "}
-          {/* Reutiliza la clase auth-form */}
-          <h2>
-            Crear Nuevo Palet para Carga{" "}
-            {cargaId ? `(${cargaId.substring(0, 5)}...)` : ""}
-          </h2>
-          {error && <p className="error-message">{error}</p>}
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h2>Crear Nuevo Palet</h2>
+        {error && <p className="error-message">{error}</p>}
+        {message && <p className="success-message">{message}</p>}
+        <form onSubmit={handleSubmit}>
+          {/* Campo de solo lectura para el número de palet autogenerado */}
           <div className="form-group">
-            <label htmlFor="numeroPalet">Número de Palet:</label>
+            <label htmlFor="numeroPaletDisplay">Número de Palet:</label>
             <input
-              type="number"
-              id="numeroPalet"
-              name="numeroPalet"
-              value={formData.numeroPalet}
-              onChange={handleChange}
-              required
-              aria-label="Número de palet"
+              type="text"
+              id="numeroPaletDisplay"
+              // CAMBIO: El valor ya muestra "Calculando..." o el número.
+              // Esto ya actúa como una previsualización del número que se va a crear.
+              value={loadingNumeroPalet ? "Calculando..." : nextPaletNumber}
+              disabled // Deshabilitado para que el usuario no lo edite
+              readOnly // Solo lectura
+              className="read-only-input" // Puedes añadir estilos específicos para inputs de solo lectura
+              aria-label="Número de palet autogenerado"
             />
           </div>
-          <div className="form-group">
-            <label htmlFor="tipoGenero">Tipo de Género:</label>
-            <select
-              id="tipoGenero"
-              name="tipoGenero"
-              value={formData.tipoGenero}
-              onChange={handleChange}
-              required
-              aria-label="Tipo de género del palet"
-            >
-              <option value="Seco">Seco</option>
-              <option value="Congelado">Congelado</option>
-              <option value="Refrigerado">Refrigerado</option>
-              <option value="Tecnico">Técnico</option>
-            </select>
-          </div>
+
+          {/* Tipo de Palet (CAMBIO: Ahora es un desplegable) */}
           <div className="form-group">
             <label htmlFor="tipoPalet">Tipo de Palet:</label>
             <select
@@ -128,15 +147,40 @@ function CargaPaletFormModal({
             >
               <option value="Europeo">Europeo</option>
               <option value="Americano">Americano</option>
+              <option value="Otros">Otros</option>
             </select>
           </div>
-          {/* Subrayado: Se han eliminado los campos de fecha de carga y nombre del barco */}
-          {/* Estos campos ya no se muestran en el modal, ya que los datos se toman de la carga principal */}
-          {/* Conservamos los valores en formData para que se envíen al guardar */}
-          <button type="submit" className="submit-button">
-            Guardar Palet
-          </button>
+
+          {/* Tipo de Género */}
+          <div className="form-group">
+            <label htmlFor="tipoGenero">Tipo de Género:</label>
+            <select
+              id="tipoGenero"
+              name="tipoGenero"
+              value={formData.tipoGenero}
+              onChange={handleChange}
+              required
+              aria-label="Tipo de género"
+            >
+              <option value="Tecnico">Técnico</option>
+              <option value="Congelado">Congelado</option>
+              <option value="Refrigerado">Refrigerado</option>
+              <option value="Seco">Seco</option>
+            </select>
+          </div>
+
+          <div className="form-actions">
+            <button type="submit" className="submit-button">
+              Guardar Palet
+            </button>
+            <button type="button" onClick={onClose} className="cancel-button">
+              Cancelar
+            </button>
+          </div>
         </form>
+        <button className="modal-close-button" onClick={onClose}>
+          &times;
+        </button>
       </div>
     </div>
   );
