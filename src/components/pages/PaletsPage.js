@@ -1,9 +1,12 @@
-// src/components/pages/PaletsPage.jsx
+// src/components/pages/PaletsPage.js
+// Ten en cuenta que, aunque la extensión es .js, este archivo contiene JSX.
+// Asegúrate de que tu configuración de Babel/ESLint pueda procesar JSX en archivos .js.
 import React, { useEffect, useState } from "react";
 import { db } from "../../db/firebase-config"; // Importa la instancia de Firestore
 import { collection, onSnapshot } from "firebase/firestore"; // Importa onSnapshot
 import { useNavigate } from "react-router-dom"; // Importa useNavigate
 import "../../App.css"; // Importa estilos generales
+import { getPaletColor } from "../../utils/colors"; // Importa la función de colores
 
 function PaletsPage() {
   // Estados para los datos brutos de las colecciones
@@ -19,22 +22,6 @@ function PaletsPage() {
 
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-
-  // Función para determinar el color del palet según el tipo de género (reutilizada de PaletCard)
-  const getPaletColor = (tipoGenero) => {
-    switch (tipoGenero) {
-      case "Tecnico":
-        return "#d2b4de";
-      case "Congelado":
-        return "#aed6f1";
-      case "Refrigerado":
-        return "#abebc6";
-      case "Seco":
-        return "#f5cba7";
-      default:
-        return "#95a5a6";
-    }
-  };
 
   // useEffect 1: Listener para la colección "Cargas"
   useEffect(() => {
@@ -75,7 +62,10 @@ function PaletsPage() {
         console.log("Raw Palets actualizados:", data);
       },
       (paletsError) => {
-        console.error("Error al escuchar los palets:", paletsError);
+        console.error(
+          "Error al escuchar los palets en PaletsPage:",
+          paletsError
+        );
         setError("Error al cargar los palets: " + paletsError.message);
         setInitialPaletsLoaded(true); // Marca como cargado incluso si hay error
       }
@@ -126,8 +116,7 @@ function PaletsPage() {
       {cargasParaMostrar.length > 0 ? (
         <div className="cargas-cards-container">
           {cargasParaMostrar.map((carga) => {
-            // CAMBIO CLAVE: Aquí se usa 'associatedPaletsData' (sin la 'l' extra)
-            // para que coincida con la propiedad establecida en el useEffect de enriquecimiento.
+            // Define currentAssociatedPalets dentro del ámbito del map
             const currentAssociatedPallets = Array.isArray(
               carga.associatedPaletsData
             )
@@ -165,7 +154,12 @@ function PaletsPage() {
                       {currentAssociatedPallets.slice(0, 3).map((palet) => (
                         <span
                           key={palet.id}
-                          className="associated-pallet-id"
+                          // Aquí usamos currentAssociatedPallets, que está definido
+                          className={`associated-pallet-id ${
+                            palet.tipoPalet !== "Europeo"
+                              ? "non-europeo-border"
+                              : ""
+                          }`}
                           title={`Palet Nº: ${palet.numeroPalet} (${palet.tipoGenero})`}
                           style={{
                             backgroundColor: getPaletColor(palet.tipoGenero),
@@ -188,8 +182,6 @@ function PaletsPage() {
                             fontWeight: "bold",
                           }}
                         >
-                          {" "}
-                          {/* Color de letra a negro */}
                           ...
                         </span>
                       )}

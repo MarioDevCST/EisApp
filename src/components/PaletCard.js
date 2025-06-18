@@ -1,15 +1,14 @@
 // src/components/PaletCard.jsx
-import React, { useState, useEffect } from "react"; // Subrayado: Importa useState y useEffect
-import { useNavigate } from "react-router-dom"; // Para la navegación
-import { db } from "../db/firebase-config"; // Subrayado: Importa la instancia de Firestore
-import { doc, getDoc } from "firebase/firestore"; // Subrayado: Importa doc y getDoc
-import "../App.css"; // Importa estilos generales, incluyendo los nuevos para la tarjeta
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { db } from "../db/firebase-config";
+import { doc, getDoc } from "firebase/firestore";
+import "../App.css"; // Importa estilos generales
+import { getPaletColor } from "../utils/colors"; // Importa la función de colores
 
 function PaletCard({ palet }) {
   const navigate = useNavigate();
-  // Subrayado: Nuevo estado para almacenar el nombre de la carga asociada
   const [cargaNombre, setCargaNombre] = useState("");
-  // Subrayado: Estado para controlar la carga del nombre de la carga
   const [loadingCargaNombre, setLoadingCargaNombre] = useState(true);
 
   // Efecto para obtener el nombre de la carga asociada
@@ -41,36 +40,21 @@ function PaletCard({ palet }) {
     };
 
     fetchCargaNombre();
-  }, [palet.cargaAsociadaId]); // Re-ejecuta cuando la ID de la carga asociada cambia
-
-  // Función para determinar el color de la franja según el tipo de género
-  const getBorderColor = (tipoGenero) => {
-    switch (tipoGenero) {
-      case "Tecnico":
-        return "#3498db"; // Azul para técnico
-      case "Congelado":
-        return "#27ae60"; // Verde para congelado
-      case "Refrigerado":
-        return "#f39c12"; // Naranja para refrigerado
-      case "Seco":
-        return "#e74c3c"; // Rojo para seco
-      default:
-        return "#95a5a6"; // Gris por defecto
-    }
-  };
+  }, [palet.cargaAsociadaId]);
 
   // Función para manejar el clic en el botón de Editar
   const handleEditClick = () => {
-    // Aquí puedes redirigir a una página de edición específica para palets
-    // Por ahora, solo un log. Deberías crear una ruta como '/editpalet/:paletId'
-    console.log(`Editar palet con ID: ${palet.id}`);
-    // navigate(`/editpalet/${palet.id}`); // Esto sería un paso futuro
+    // Redirigir a la página de detalle de palet para edición
+    navigate(`/paletdetailpage/${palet.id}`);
   };
+
+  // Determina si el palet no es europeo para aplicar la clase de borde
+  const isNonEuropeo = palet.tipoPalet !== "Europeo";
 
   return (
     <div
-      className="palet-card"
-      style={{ borderLeftColor: getBorderColor(palet.tipoGenero) }}
+      className={`palet-card ${isNonEuropeo ? "non-europeo-border" : ""}`} // ¡CAMBIO CLAVE! Clase condicional
+      style={{ borderLeftColor: getPaletColor(palet.tipoGenero) }}
     >
       <div className="palet-card-header">
         <h3 className="palet-card-title">{palet.nombreBarco || "Barco N/A"}</h3>
@@ -82,7 +66,6 @@ function PaletCard({ palet }) {
         <p>
           <strong>Tipo:</strong> {palet.tipoPalet || "N/A"}
         </p>
-        {/* Subrayado: Reemplazado Fecha Carga por Carga Asociada */}
         <p>
           <strong>Carga Asociada:</strong>{" "}
           {loadingCargaNombre ? "Cargando..." : cargaNombre}
@@ -91,7 +74,6 @@ function PaletCard({ palet }) {
           <strong>Género:</strong> {palet.tipoGenero || "N/A"}
         </p>
       </div>
-      {/* Nuevo contenedor para el botón de acción */}
       <div className="palet-card-actions">
         <button className="palet-edit-button" onClick={handleEditClick}>
           Editar

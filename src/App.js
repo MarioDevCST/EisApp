@@ -29,7 +29,7 @@ import CargaEditPage from "./components/pages/CargaEditPage";
 import PaletsPage from "./components/pages/PaletsPage";
 import CargaDetailPage from "./components/pages/CargaDetailPage";
 import PaletDetailPage from "./components/pages/PaletDetailPage"; // Importa la página de detalle de palet
-// ELIMINADO: import ProductPage from "./components/pages/ProductPage"; // Ya no es necesaria aquí
+import ProductDetailPage from "./components/pages/ProductDetailPage"; // ¡NUEVA IMPORTACIÓN! Para la página de detalle de producto
 
 import PaletList from "./components/PaletList"; // Este es tu componente de listado de palets
 
@@ -125,8 +125,7 @@ function App() {
             <Route
               path="/paletdetailpage/:paletId"
               element={<PaletDetailPage />}
-            />{" "}
-            {/* Ruta para PaletDetailPage */}
+            />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/createuser" element={<SignupPage />} />
             <Route path="/edituser/:userId" element={<UserEditPage />} />
@@ -135,11 +134,12 @@ function App() {
             <Route path="/createcarga" element={<CargaFormPage />} />
             <Route path="/editcarga/:cargaId" element={<CargaEditPage />} />
             <Route path="/prueba" element={<PaletList />} />
+            {/* ¡NUEVA RUTA! para la página de detalle de producto */}
             <Route
-              path="/createproduct"
-              element={<p>Formulario para Crear Producto (PENDIENTE)</p>}
-            />{" "}
-            {/* Ruta placeholder para crear producto */}
+              path="/productdetailpage/:productId"
+              element={<ProductDetailPage />}
+            />
+
             <Route
               path="/logout"
               element={
@@ -153,7 +153,9 @@ function App() {
                 </div>
               }
             />
+
             <Route path="/login" element={<Navigate to="/" replace />} />
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
         )}

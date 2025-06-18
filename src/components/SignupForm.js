@@ -1,5 +1,5 @@
 // src/components/SignupForm.jsx
-import React, { useState } from "react";
+import React, { useState } from "react"; // Mantenemos useState para error/message
 // Importar las funciones necesarias para crear una nueva instancia de Firebase
 import { initializeApp, getApps, deleteApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
@@ -7,10 +7,22 @@ import { db, firebaseConfig } from "../db/firebase-config";
 import { doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import "./AuthForm.css";
+import useForm from "../hooks/useForm"; // ¡CAMBIO! Importa el custom hook useForm
 
 function SignupForm() {
-  const [formData, setFormData] = useState({
-    email: "",
+  // ¡CAMBIO CLAVE! Usamos el custom hook useForm
+  // Los campos de email y password no se gestionan con formData directamente para Auth,
+  // pero el resto de datos del perfil sí.
+  const {
+    formData,
+    handleChange,
+    selectedFile,
+    imagePreviewUrl,
+    resetForm,
+    setSelectedFile, // ¡CORRECCIÓN! Desestructuramos setSelectedFile
+    setImagePreviewUrl, // ¡CORRECCIÓN! Desestructuramos setImagePreviewUrl
+  } = useForm({
+    email: "", // Aunque gestionaremos email y password aparte para Auth, los incluimos para el reset
     password: "",
     nombre: "",
     primerApellido: "",
@@ -19,30 +31,26 @@ function SignupForm() {
     role: "Mozo de Almacén",
     imageUrl: "",
   });
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+
+  // Mantenemos estados separados para email y password, ya que son directamente para `createUserWithEmailAndPassword`
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-
-    if (name === "imageUrl" && files && files[0]) {
-      const file = files[0];
-      setSelectedFile(file);
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreviewUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
+  // Modificamos el handleChange para los campos que no son email/password para usar el hook
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    // Si el campo es email o password, los gestionamos con sus propios estados
+    if (name === "email") {
+      setEmail(value);
+    } else if (name === "password") {
+      setPassword(value);
     } else {
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
+      // Para el resto de campos (nombre, apellido, etc.), usamos el handleChange del hook
+      handleChange(e);
     }
   };
 
@@ -53,12 +61,11 @@ function SignupForm() {
 
     let tempAppInstance = null;
     let tempAuthInstance;
-    const appName = "tempUserCreationApp"; // Define appName constante aquí
+    const appName = "tempUserCreationApp";
 
     try {
       const existingApp = getApps().find((app) => app.name === appName);
 
-      // Intentar eliminar cualquier instancia existente con el mismo nombre antes de crear una nueva.
       if (existingApp) {
         try {
           await deleteApp(existingApp);
@@ -66,7 +73,6 @@ function SignupForm() {
             `Instancia temporal preexistente '${appName}' eliminada antes de la creación.`
           );
         } catch (deleteErr) {
-          // Si el error es que la app ya está eliminada, lo ignoramos, de lo contrario, advertimos.
           if (deleteErr.code !== "app/app-deleted") {
             console.warn(
               `Advertencia: No se pudo eliminar la instancia temporal preexistente '${appName}':`,
@@ -76,14 +82,14 @@ function SignupForm() {
         }
       }
 
-      // Siempre inicializar una nueva instancia aquí después de la limpieza.
       tempAppInstance = initializeApp(firebaseConfig, appName);
       tempAuthInstance = getAuth(tempAppInstance);
 
+      // Usamos los estados `email` y `password` directos para la autenticación
       const userCredential = await createUserWithEmailAndPassword(
         tempAuthInstance,
-        formData.email,
-        formData.password
+        email,
+        password
       );
       const user = userCredential.user;
 
@@ -94,7 +100,7 @@ function SignupForm() {
       }
 
       await setDoc(doc(db, "users", user.uid), {
-        email: formData.email,
+        email: email, // Usamos el estado email
         nombre: formData.nombre,
         primerApellido: formData.primerApellido,
         segundoApellido: formData.segundoApellido,
@@ -107,27 +113,18 @@ function SignupForm() {
       setMessage(
         "Registro exitoso. ¡Usuario creado sin afectar la sesión actual del administrador!"
       );
-      setFormData({
-        email: "",
-        password: "",
-        nombre: "",
-        primerApellido: "",
-        segundoApellido: "",
-        telefono: "",
-        role: "Mozo de Almacén",
-        imageUrl: "",
-      });
-      setSelectedFile(null);
-      setImagePreviewUrl("");
+      // Reiniciamos los estados del formulario y del hook
+      setEmail("");
+      setPassword("");
+      resetForm(); // Resetea los campos gestionados por useForm
+      setSelectedFile(null); // Asegura que el archivo seleccionado se limpie
+      setImagePreviewUrl(""); // Asegura que la URL de previsualización se limpie
 
       navigate("/admin");
     } catch (err) {
       console.error("Error al registrar:", err);
       setError("Error al registrar: " + err.message);
     } finally {
-      // Subrayado: Siempre intentar eliminar la instancia temporal que acabamos de crear/usar
-      // en este bloque `finally` para asegurar una limpieza.
-      // Usamos la variable 'appName' definida al principio del scope para los logs.
       if (tempAppInstance) {
         try {
           await deleteApp(tempAppInstance);
@@ -135,8 +132,6 @@ function SignupForm() {
             `Instancia temporal '${appName}' eliminada en finally block.`
           );
         } catch (deleteErr) {
-          // Captura específicamente el error "app/app-deleted" para evitar mostrarlo
-          // ya que si la app ya no existe, el objetivo de limpieza se cumplió.
           if (deleteErr.code === "app/app-deleted") {
             console.warn(
               `Instancia temporal '${appName}' ya estaba eliminada.`
@@ -148,7 +143,6 @@ function SignupForm() {
             );
           }
         } finally {
-          // Subrayado: Asegura que tempAppInstance se establezca en null después de cualquier intento de eliminación.
           tempAppInstance = null;
         }
       }
@@ -168,8 +162,8 @@ function SignupForm() {
             type="email"
             id="email"
             name="email"
-            value={formData.email}
-            onChange={handleChange}
+            value={email} // ¡CAMBIO! Usa el estado `email`
+            onChange={handleFormChange} // ¡CAMBIO! Usa el nuevo manejador
             required
             aria-label="Correo electrónico"
           />
@@ -181,8 +175,8 @@ function SignupForm() {
             type="password"
             id="password"
             name="password"
-            value={formData.password}
-            onChange={handleChange}
+            value={password} // ¡CAMBIO! Usa el estado `password`
+            onChange={handleFormChange} // ¡CAMBIO! Usa el nuevo manejador
             required
             aria-label="Contraseña"
           />
@@ -195,7 +189,7 @@ function SignupForm() {
             id="nombre"
             name="nombre"
             value={formData.nombre}
-            onChange={handleChange}
+            onChange={handleChange} // ¡CAMBIO! Usa handleChange del hook
             required
             aria-label="Nombre del usuario"
           />
@@ -208,7 +202,7 @@ function SignupForm() {
             id="primerApellido"
             name="primerApellido"
             value={formData.primerApellido}
-            onChange={handleChange}
+            onChange={handleChange} // ¡CAMBIO! Usa handleChange del hook
             required
             aria-label="Primer apellido del usuario"
           />
@@ -221,7 +215,7 @@ function SignupForm() {
             id="segundoApellido"
             name="segundoApellido"
             value={formData.segundoApellido}
-            onChange={handleChange}
+            onChange={handleChange} // ¡CAMBIO! Usa handleChange del hook
             aria-label="Segundo apellido del usuario (opcional)"
           />
         </div>
@@ -233,7 +227,7 @@ function SignupForm() {
             id="telefono"
             name="telefono"
             value={formData.telefono}
-            onChange={handleChange}
+            onChange={handleChange} // ¡CAMBIO! Usa handleChange del hook
             required
             aria-label="Número de teléfono del usuario"
           />
@@ -245,12 +239,14 @@ function SignupForm() {
             id="role"
             name="role"
             value={formData.role}
-            onChange={handleChange}
+            onChange={handleChange} // ¡CAMBIO! Usa handleChange del hook
             required
             aria-label="Rol del usuario"
           >
             <option value="Mozo de Almacén">Mozo de Almacén</option>
             <option value="Administración">Administración</option>
+            <option value="Conductor">Conductor</option>{" "}
+            {/* Subrayado: ¡NUEVA OPCIÓN DE ROL! */}
           </select>
         </div>
 
@@ -261,7 +257,7 @@ function SignupForm() {
             id="imageUrl"
             name="imageUrl"
             accept="image/*"
-            onChange={handleChange}
+            onChange={handleChange} // ¡CAMBIO! Usa handleChange del hook (para files)
             aria-label="Seleccionar imagen de perfil"
           />
           {imagePreviewUrl && (

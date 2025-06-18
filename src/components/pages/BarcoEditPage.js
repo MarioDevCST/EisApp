@@ -13,23 +13,32 @@ import {
   deleteDoc,
 } from "firebase/firestore"; // Funciones de Firestore
 import "../../App.css"; // Estilos generales
+import useForm from "../../hooks/useForm"; // Importa el custom hook useForm
 
 function BarcoEditPage() {
   const { barcoId } = useParams(); // Obtiene el barcoId de la URL
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
+  // ¡CAMBIO CLAVE! Usamos el custom hook useForm
+  const {
+    formData,
+    handleChange,
+    selectedFile,
+    imagePreviewUrl,
+    setFormData, // Necesitamos setFormData para inicializar el formulario con los datos del usuario
+    setSelectedFile, // Necesitamos setSelectedFile para limpiar el estado del archivo
+    setImagePreviewUrl, // Necesitamos setImagePreviewUrl para inicializar y limpiar la previsualización
+  } = useForm({
     nombre: "",
     empresa: "",
     tipo: "Mercante", // Valor por defecto
     responsableId: "", // ID del usuario administrador seleccionado
     imageUrl: "",
   });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [administrators, setAdministrators] = useState([]); // Lista de usuarios administradores
 
   // Efecto para cargar los datos del barco y la lista de administradores
@@ -85,26 +94,7 @@ function BarcoEditPage() {
     };
 
     fetchData();
-  }, [barcoId]); // Se re-ejecuta si el barcoId cambia
-
-  // Manejador de cambios para los campos del formulario
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "imageUrl" && files && files[0]) {
-      const file = files[0];
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreviewUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
-    }
-  };
+  }, [barcoId, setFormData, setImagePreviewUrl, setSelectedFile]); // Dependencias del efecto
 
   // Función para guardar los cambios del barco
   const handleSaveChanges = async (e) => {
@@ -128,7 +118,7 @@ function BarcoEditPage() {
         imageUrl: finalImageUrl,
       });
       setMessage("Barco actualizado exitosamente.");
-      // Subrayado: Redirige a /admin y pasa un estado para activar la sección de barcos
+      // Redirige a /admin y pasa un estado para activar la sección de barcos
       navigate("/admin", { state: { fromBarcoAction: true } });
     } catch (err) {
       console.error("Error al actualizar barco:", err);
@@ -147,7 +137,7 @@ function BarcoEditPage() {
       try {
         await deleteDoc(doc(db, "Barcos", barcoId));
         setMessage("Barco eliminado exitosamente.");
-        // Subrayado: Redirige a /admin y pasa un estado para activar la sección de barcos
+        // Redirige a /admin y pasa un estado para activar la sección de barcos
         navigate("/admin", { state: { fromBarcoAction: true } });
       } catch (err) {
         console.error("Error al eliminar barco:", err);
@@ -221,6 +211,8 @@ function BarcoEditPage() {
           >
             <option value="Mercante">Mercante</option>
             <option value="Crucero">Crucero</option>
+            <option value="Ferry">Ferry</option>{" "}
+            {/* Subrayado: Nueva opción "Ferry" */}
           </select>
         </div>
 

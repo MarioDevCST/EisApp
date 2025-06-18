@@ -72,7 +72,7 @@ function BarcosPage() {
     navigate("/createbarco"); // Redirige al formulario de creación de barcos
   };
 
-  // Subrayado: Nueva función para manejar el clic en el botón de Editar
+  // Función para manejar el clic en el botón de Editar
   const handleEditBarcoClick = (barcoId) => {
     navigate(`/editbarco/${barcoId}`); // Navega a la ruta de edición de barcos, pasando el ID del barco
   };
@@ -87,10 +87,12 @@ function BarcosPage() {
 
   return (
     <div className="page-content">
+      <h1 className="main-title">Gestión de Barcos</h1>
+
       <div className="button-container" style={{ justifyContent: "flex-end" }}>
         <button
           className="create-palet-button"
-          onClick={handleCreateBarcoClick}
+          onClick={handleCreateBarcoClick} // Abre el modal al hacer clic
         >
           Crear Barco
         </button>
@@ -101,8 +103,6 @@ function BarcosPage() {
           {" "}
           {/* Reutiliza el contenedor de lista de usuarios para el estilo */}
           <table className="users-table">
-            {" "}
-            {/* Reutiliza la clase de tabla de usuarios */}
             <thead>
               <tr>
                 <th>Foto</th>

@@ -28,10 +28,21 @@ function CargaPaletFormModal({
 
   // Efecto para calcular el próximo número de palet al abrir el modal
   useEffect(() => {
+    console.log(
+      "CargaPaletFormModal useEffect triggered. show:",
+      show,
+      "cargaId:",
+      cargaId
+    ); // Log inicial del efecto
+
     const fetchNextPaletNumber = async () => {
       setLoadingNumeroPalet(true);
       setError("");
       try {
+        console.log(
+          "Attempting to fetch next palet number for cargaId:",
+          cargaId
+        ); // Log antes de la consulta
         // CAMBIO CLAVE: Consulta solo los palets asociados a esta carga específica
         const paletsCollectionRef = collection(db, "Palets");
         const q = query(
@@ -40,22 +51,27 @@ function CargaPaletFormModal({
         ); // Filtra por cargaId
 
         const querySnapshot = await getDocs(q); // Ejecuta la consulta filtrada
+        console.log(
+          "Firestore querySnapshot received. Size:",
+          querySnapshot.size
+        ); // Log después de la consulta
 
         // Se obtiene la cantidad de documentos (palets) en el querySnapshot y se le suma 1
         const countOfPalets = querySnapshot.size;
         setNextPaletNumber(countOfPalets + 1);
+        console.log("Calculated nextPaletNumber:", countOfPalets + 1); // Log del número calculado
 
         setLoadingNumeroPalet(false);
       } catch (err) {
-        console.error("Error al obtener el número de palet correlativo:", err);
+        console.error("Error al obtener el número de palet correlativo:", err); // Log del error
         setError("Error al cargar el número de palet: " + err.message);
         setLoadingNumeroPalet(false);
         setNextPaletNumber("Error"); // Mostrar "Error" si no se pudo cargar
       }
     };
 
-    if (show) {
-      // Solo ejecutar cuando el modal está visible
+    if (show && cargaId) {
+      // Solo ejecutar cuando el modal está visible Y cargaId está disponible
       fetchNextPaletNumber();
       // Reiniciar el formulario y los mensajes/errores al abrir el modal
       setFormData({
@@ -64,6 +80,15 @@ function CargaPaletFormModal({
       });
       setError("");
       setMessage("");
+    } else if (show && !cargaId) {
+      console.warn(
+        "CargaPaletFormModal: Modal is shown but cargaId is missing. Cannot fetch palet number."
+      );
+      setLoadingNumeroPalet(false);
+      setNextPaletNumber("Error: No Carga ID");
+      setError(
+        "Carga ID no disponible. No se puede generar el número de palet."
+      );
     }
   }, [show, cargaId]); // CAMBIO: Añade cargaId como dependencia, ya que la consulta depende de ello
 
@@ -82,8 +107,14 @@ function CargaPaletFormModal({
     setError("");
     setMessage("");
 
-    if (nextPaletNumber === null || nextPaletNumber === "Error") {
-      setError("El número de palet no se ha podido generar correctamente.");
+    if (
+      nextPaletNumber === null ||
+      nextPaletNumber === "Error" ||
+      typeof nextPaletNumber !== "number"
+    ) {
+      setError(
+        "El número de palet no se ha podido generar correctamente o está pendiente."
+      );
       return;
     }
 

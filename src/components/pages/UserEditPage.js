@@ -4,46 +4,59 @@ import { useParams, useNavigate } from "react-router-dom"; // Para obtener pará
 import { db } from "../../db/firebase-config"; // Importa la instancia de Firestore
 import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore"; // Funciones de Firestore
 import "../../App.css"; // Estilos generales
+import useForm from "../../hooks/useForm"; // ¡CAMBIO! Importa el custom hook useForm
 
 function UserEditPage() {
   const { userId } = useParams(); // Obtiene el userId de la URL
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
+  // ¡CAMBIO CLAVE! Usamos el custom hook useForm
+  const {
+    formData,
+    handleChange,
+    selectedFile,
+    imagePreviewUrl,
+    setFormData, // Necesitamos setFormData para inicializar el formulario con los datos del usuario
+    setSelectedFile, // Necesitamos setSelectedFile para limpiar el estado del archivo
+    setImagePreviewUrl, // Necesitamos setImagePreviewUrl para inicializar y limpiar la previsualización
+  } = useForm({
     email: "",
     nombre: "",
     primerApellido: "",
     segundoApellido: "",
     telefono: "",
-    role: "",
+    role: "Mozo de Almacén", // Valor por defecto
     imageUrl: "",
   });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
 
   // Efecto para cargar los datos del usuario al montar el componente
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
+        setError(null); // Limpiar errores previos
         const userDocRef = doc(db, "users", userId);
         const userDocSnap = await getDoc(userDocRef);
 
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
+          // ¡CAMBIO! Usamos setFormData del hook para inicializar el formulario
           setFormData({
             email: userData.email || "",
             nombre: userData.nombre || "",
             primerApellido: userData.primerApellido || "",
             segundoApellido: userData.segundoApellido || "",
             telefono: userData.telefono || "",
-            role: userData.role || "Mozo de Almacén", // Asegura un valor por defecto
+            role: userData.role || "Mozo de Almacén",
             imageUrl: userData.imageUrl || "",
           });
-          setImagePreviewUrl(userData.imageUrl || ""); // Establece la URL de previsualización
+          // ¡CAMBIO! Usamos setImagePreviewUrl del hook para la previsualización
+          setImagePreviewUrl(userData.imageUrl || "");
+          setSelectedFile(null); // Asegurarse de que no haya archivo seleccionado inicialmente
         } else {
           setError("Usuario no encontrado.");
         }
@@ -56,26 +69,10 @@ function UserEditPage() {
     };
 
     fetchUserData();
-  }, [userId]); // Se re-ejecuta si el userId cambia
+  }, [userId, setFormData, setImagePreviewUrl, setSelectedFile]); // Dependencias del efecto
 
-  // Manejador de cambios para los campos del formulario
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "imageUrl" && files && files[0]) {
-      const file = files[0];
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreviewUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
-    }
-  };
+  // ¡CAMBIO! La función handleChange ya viene del hook useForm y maneja archivos e inputs.
+  // No necesitamos una implementación manual aquí.
 
   // Función para guardar los cambios del usuario
   const handleSaveChanges = async (e) => {
@@ -83,23 +80,15 @@ function UserEditPage() {
     setError("");
     setMessage("");
     try {
-      // Aquí se implementaría la lógica para subir la imagen a Firebase Storage si selectedFile no es nulo
-      // Por ahora, solo actualizamos la URL de la imagen si se seleccionó una nueva,
-      // o mantenemos la existente si no se cambió.
       let finalImageUrl = formData.imageUrl; // Por defecto, mantenemos la que ya estaba en formData
       if (selectedFile) {
         // En una aplicación real, aquí subirías selectedFile a Firebase Storage
         // y asignarías la URL de descarga a finalImageUrl.
-        // Ejemplo: finalImageUrl = await uploadImageToFirebaseStorage(selectedFile);
         finalImageUrl = imagePreviewUrl; // Usamos la URL de previsualización como la "final" por ahora
       }
 
       const userDocRef = doc(db, "users", userId);
       await updateDoc(userDocRef, {
-        // El email no suele ser editable directamente vía este método en Auth, pero lo guardamos en Firestore
-        // Si el email se edita aquí, recuerda que no cambia el email de la cuenta de Firebase Authentication.
-        // Para cambiar el email de Firebase Auth, se necesita updateEmail() con reautenticación.
-        // email: formData.email,
         nombre: formData.nombre,
         primerApellido: formData.primerApellido,
         segundoApellido: formData.segundoApellido,
@@ -108,7 +97,7 @@ function UserEditPage() {
         imageUrl: finalImageUrl,
       });
       setMessage("Usuario actualizado exitosamente.");
-      // Redirigir de nuevo a la lista de usuarios
+      // Redirigir de nuevo a la lista de usuarios en la página de administración
       navigate("/admin");
     } catch (err) {
       console.error("Error al actualizar usuario:", err);
@@ -120,23 +109,20 @@ function UserEditPage() {
   const handleDeleteUser = async () => {
     setMessage("");
     setError("");
+    // Subrayado: Usar un modal personalizado en lugar de window.confirm
+    // (Por ahora, mantenemos window.confirm para simplicidad, pero se recomienda un modal UI)
     const confirmDelete = window.confirm(
       "¿Estás seguro de que quieres eliminar este usuario? Esta acción es irreversible."
     );
     if (confirmDelete) {
       try {
-        // Subrayado: Elimina el documento del usuario de Firestore
         await deleteDoc(doc(db, "users", userId));
 
-        // IMPORTANTE: Para eliminar el usuario de Firebase Authentication (no solo el documento de Firestore),
-        // normalmente necesitarías un proceso más seguro:
-        // 1. Reautenticación del administrador.
-        // 2. Uso del Admin SDK de Firebase en un entorno de backend (Cloud Functions, Node.js server)
-        // para llamar a admin.auth().deleteUser(userId).
-        // Eliminar directamente con deleteUser() en el frontend solo funciona para el usuario actualmente logueado.
+        // NOTA: La eliminación de la cuenta de Firebase Authentication DEBE hacerse desde un backend
+        // (ej. Cloud Function) para eliminar al usuario completamente. Eliminar desde el frontend
+        // solo elimina el documento de Firestore.
 
         setMessage("Usuario eliminado exitosamente.");
-        // Subrayado: Redirigir a la lista de usuarios en la página de administración
         navigate("/admin");
       } catch (err) {
         console.error("Error al eliminar usuario:", err);
@@ -180,7 +166,7 @@ function UserEditPage() {
             id="email"
             name="email"
             value={formData.email}
-            onChange={handleChange}
+            onChange={handleChange} // Usamos handleChange del hook
             required
             aria-label="Correo electrónico"
             disabled // Email suele ser ineditable o requiere lógica de Auth diferente
@@ -194,7 +180,7 @@ function UserEditPage() {
             id="nombre"
             name="nombre"
             value={formData.nombre}
-            onChange={handleChange}
+            onChange={handleChange} // Usamos handleChange del hook
             required
             aria-label="Nombre del usuario"
           />
@@ -207,7 +193,7 @@ function UserEditPage() {
             id="primerApellido"
             name="primerApellido"
             value={formData.primerApellido}
-            onChange={handleChange}
+            onChange={handleChange} // Usamos handleChange del hook
             required
             aria-label="Primer apellido del usuario"
           />
@@ -220,7 +206,7 @@ function UserEditPage() {
             id="segundoApellido"
             name="segundoApellido"
             value={formData.segundoApellido}
-            onChange={handleChange}
+            onChange={handleChange} // Usamos handleChange del hook
             aria-label="Segundo apellido del usuario (opcional)"
           />
         </div>
@@ -232,7 +218,7 @@ function UserEditPage() {
             id="telefono"
             name="telefono"
             value={formData.telefono}
-            onChange={handleChange}
+            onChange={handleChange} // Usamos handleChange del hook
             required
             aria-label="Número de teléfono del usuario"
           />
@@ -244,12 +230,14 @@ function UserEditPage() {
             id="role"
             name="role"
             value={formData.role}
-            onChange={handleChange}
+            onChange={handleChange} // Usamos handleChange del hook
             required
             aria-label="Rol del usuario"
           >
             <option value="Mozo de Almacén">Mozo de Almacén</option>
             <option value="Administración">Administración</option>
+            <option value="Conductor">Conductor</option>{" "}
+            {/* Subrayado: ¡NUEVA OPCIÓN DE ROL! */}
           </select>
         </div>
 
@@ -260,7 +248,7 @@ function UserEditPage() {
             id="imageUrl"
             name="imageUrl"
             accept="image/*"
-            onChange={handleChange}
+            onChange={handleChange} // Usamos handleChange del hook (para files)
             aria-label="Seleccionar imagen de perfil"
           />
           {imagePreviewUrl && (

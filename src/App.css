@@ -609,6 +609,13 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
 }
 
+/* Estilo para los palets que NO son de tipo 'Europeo' */
+/* Esta regla se aplica a PaletCard.jsx */
+.palet-card.non-europeo-border {
+  border: 2px solid black; /* Borde negro de 2px */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25); /* Un poco más de sombra para destacarlos */
+}
+
 .palet-card-header {
   padding: 15px 20px 10px;
   background-color: #f8f8f8;
@@ -710,6 +717,14 @@
   white-space: nowrap;
   font-weight: 500;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: border 0.2s ease, box-shadow 0.2s ease; /* Transición para el borde */
+}
+
+/* ¡CAMBIO CLAVE AQUÍ! Estilo para los palets asociados que NO son de tipo 'Europeo' */
+/* Esta regla se aplica a los <span> con clase .associated-pallet-id */
+.associated-pallet-id.non-europeo-border {
+  border: 2px solid black; /* Borde negro de 2px */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Sombra para destacarlos */
 }
 
 .no-palets-message {
@@ -763,13 +778,20 @@
   font-size: 1em;
   text-align: center;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease; /* Transición para el borde */
   min-width: 120px; /* Ancho mínimo más grande para los detalles */
 }
 
 .associated-pallet-div-detail:hover {
   transform: translateY(-3px);
   box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ¡NUEVA REGLA! Estilo para los palets asociados en detalle que NO son de tipo 'Europeo' */
+/* Esta regla se aplica a los <div> con clase .associated-pallet-div-detail */
+.associated-pallet-div-detail.non-europeo-border {
+  border: 2px solid black; /* Borde negro de 2px */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25); /* Un poco más de sombra para destacarlos */
 }
 
 /* Estilos para el modal general */
@@ -840,14 +862,4 @@
 .modal-content .form-group input,
 .modal-content .form-group select {
   width: 100%; /* Asegura que ocupen todo el ancho disponible en el modal */
-}
-/* En App.css o en un CSS específico para las tarjetas de palet */
-.clickable-palet {
-  cursor: pointer;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.clickable-palet:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }

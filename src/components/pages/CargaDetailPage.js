@@ -1,5 +1,5 @@
 // src/pages/CargaDetailPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react"; // Importa useMemo
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../../db/firebase-config";
 import {
@@ -10,20 +10,23 @@ import {
   updateDoc,
   arrayUnion,
 } from "firebase/firestore"; // Importa addDoc, updateDoc, arrayUnion
-import CargaPaletFormModal from "../../components/CargaPaletFormModal"; // Subrayado: Importa el nuevo modal
+import CargaPaletFormModal from "../../components/CargaPaletFormModal"; // Importa el nuevo modal
 import "../../App.css"; // Asegúrate de importar tus estilos generales
 
 function CargaDetailPage() {
-  // Subrayado: Renombrado a CargaDetailPage
   const { cargaId } = useParams(); // Obtiene el ID de la carga de la URL
   const navigate = useNavigate();
-  const [carga, setCarga] = useState(null);
-  const [palets, setPalets] = useState([]); // Estado para todos los palets (para el enriquecimiento)
-  const [loading, setLoading] = useState(true);
+  const [carga, setCarga] = useState(null); // Estado para la carga específica
+  const [allPalets, setAllPalets] = useState([]); // Estado para todos los palets
+  const [loading, setLoading] = useState(true); // Estado para controlar el proceso de carga
   const [error, setError] = useState(null);
-  const [showCargaPaletModal, setShowCargaPaletModal] = useState(false); // Subrayado: Estado para controlar el modal
+  const [showCargaPaletModal, setShowCargaPaletModal] = useState(false); // Estado para controlar el modal
 
-  // Función para determinar el color del palet según el tipo de género (reutilizado)
+  // Estados para rastrear si los listeners han devuelto datos al menos una vez
+  const [hasLoadedCargaOnce, setHasLoadedCargaOnce] = useState(false);
+  const [hasLoadedPaletsOnce, setHasLoadedPaletsOnce] = useState(false);
+
+  // Función para determinar el color del palet según el tipo de género
   const getPaletColor = (tipoGenero) => {
     switch (tipoGenero) {
       case "Tecnico":
@@ -39,91 +42,88 @@ function CargaDetailPage() {
     }
   };
 
+  // useEffect 1: Listener para la carga específica por su ID
   useEffect(() => {
-    setLoading(true);
+    // Restablecemos el error y ponemos loading a true al inicio de la carga de la página
     setError(null);
+    setLoading(true); // Se pone a true aquí y el tercer useEffect lo pondrá a false
 
-    let currentLoadedCarga = null; // Para almacenar la carga más reciente
-    let currentLoadedPalets = []; // Para almacenar todos los palets más recientes
-
-    // Función para enriquecer la carga con sus datos de palets y actualizar el estado
-    const enrichCargaData = () => {
-      // Solo intenta enriquecer si tenemos datos de carga y palets
-      if (currentLoadedCarga && currentLoadedPalets) {
-        const rawPaletsAsociados = currentLoadedCarga.paletsAsociados || [];
-        const associatedPaletsData = Array.isArray(rawPaletsAsociados)
-          ? rawPaletsAsociados
-              .map((paletId) =>
-                currentLoadedPalets.find((p) => p.id === paletId)
-              )
-              .filter(Boolean) // Filtra los IDs de palet que no se encuentren
-          : [];
-        setCarga({ ...currentLoadedCarga, associatedPaletsData });
-
-        if (currentLoadedCarga && currentLoadedPalets) {
-          setLoading(false);
-        }
-      } else if (!currentLoadedCarga && !loading) {
-        // Si no se encontró la carga y ya no estamos cargando, entonces es un error
-        setError("La carga solicitada no existe.");
-        setLoading(false);
-      }
-    };
-
-    // Listener para la carga específica
     const unsubscribeCarga = onSnapshot(
       doc(db, "Cargas", cargaId),
       (docSnap) => {
         if (docSnap.exists()) {
-          currentLoadedCarga = { id: docSnap.id, ...docSnap.data() };
-          console.log(
-            "Datos de la carga actualizados (CargaDetailPage):",
-            currentLoadedCarga
-          );
-          enrichCargaData(); // Intenta enriquecer con los datos de palets actuales
+          setCarga({ id: docSnap.id, ...docSnap.data() }); // Actualiza el estado 'carga'
+          console.log("Datos de la carga actualizados (CargaDetailPage):", {
+            id: docSnap.id,
+            ...docSnap.data(),
+          });
         } else {
           setError("La carga solicitada no existe.");
-          setLoading(false);
-          currentLoadedCarga = null; // Asegura que la carga esté nula
-          setCarga(null); // Limpia el estado de carga
+          setCarga(null); // Limpia el estado de carga si no se encuentra
         }
+        setHasLoadedCargaOnce(true); // Marca que el listener de carga ha respondido al menos una vez
       },
       (err) => {
         console.error("Error al escuchar la carga en CargaDetailPage:", err);
         setError("Error al cargar los detalles de la carga: " + err.message);
-        setLoading(false);
+        setHasLoadedCargaOnce(true); // Marca que el listener de carga ha respondido (con error)
       }
     );
 
-    // Listener para todos los palets (necesarios para el enriquecimiento)
+    // Función de limpieza para desuscribirse del listener de carga
+    return () => unsubscribeCarga();
+  }, [cargaId]); // Se re-ejecuta si el ID de la carga cambia
+
+  // useEffect 2: Listener para obtener TODOS los palets (necesarios para el enriquecimiento)
+  useEffect(() => {
+    setError(null); // Restablecemos el error para esta fuente de datos
+
     const unsubscribePalets = onSnapshot(
       collection(db, "Palets"),
       (snapshot) => {
-        currentLoadedPalets = snapshot.docs.map((doc) => ({
+        const paletsData = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+        setAllPalets(paletsData); // Actualiza el estado 'allPalets'
         console.log(
           "Palets actualizados (desde listener en CargaDetailPage):",
-          currentLoadedPalets
+          paletsData
         );
-        enrichCargaData(); // Intenta enriquecer con los datos de carga actuales
+        setHasLoadedPaletsOnce(true); // Marca que el listener de palets ha respondido al menos una vez
       },
       (err) => {
         console.error("Error al escuchar los palets en CargaDetailPage:", err);
-        // No necesariamente es un error crítico si la carga existe, pero los palets fallan.
-        // Podrías decidir cómo manejarlo. Por ahora, solo log.
+        // No necesariamente es un error crítico para la carga de la página,
+        // pero registramos el error y marcamos como cargado.
+        setHasLoadedPaletsOnce(true); // Marca que el listener de palets ha respondido (con error)
       }
     );
 
-    // Función de limpieza para desuscribirse de ambos listeners
-    return () => {
-      unsubscribeCarga();
-      unsubscribePalets();
-    };
-  }, [cargaId]); // Se re-ejecuta si el ID de la carga cambia en la URL
+    // Función de limpieza para desuscribirse del listener de palets
+    return () => unsubscribePalets();
+  }, []); // Se ejecuta solo una vez al montar
 
-  // Subrayado: Función para manejar el guardado de un nuevo palet desde el modal
+  // useEffect 3: Controla el estado de 'loading'
+  // Este efecto se ejecuta cuando ambos listeners han respondido al menos una vez.
+  useEffect(() => {
+    if (hasLoadedCargaOnce && hasLoadedPaletsOnce) {
+      setLoading(false); // Una vez que ambos datos están disponibles, la carga ha terminado
+    }
+  }, [hasLoadedCargaOnce, hasLoadedPaletsOnce]);
+
+  // useMemo para calcular los palets asociados de forma eficiente
+  // Esto se recalcula solo cuando 'carga' o 'allPalets' cambian.
+  const associatedPaletsData = useMemo(() => {
+    if (!carga || !Array.isArray(carga.paletsAsociados) || !allPalets) {
+      return []; // Devuelve un array vacío si los datos no están listos o no hay palets asociados
+    }
+    return carga.paletsAsociados
+      .map((paletId) => allPalets.find((p) => p.id === paletId))
+      .filter(Boolean); // Filtra los palets que no se encuentren en 'allPalets'
+  }, [carga, allPalets]); // Dependencias para la memorización
+
+  // Función para manejar el guardado de un nuevo palet desde el modal
   const handleSavePaletForCarga = async (newPaletData) => {
     try {
       // 1. Guardar el nuevo palet en la colección 'Palets'
@@ -149,11 +149,12 @@ function CargaDetailPage() {
     }
   };
 
-  // Subrayado: Nueva función para manejar el clic en un palet individual
+  // Nueva función para manejar el clic en un palet individual
   const handlePaletClick = (paletId) => {
     navigate(`/paletdetailpage/${paletId}`);
   };
 
+  // Renderizado condicional basado en el estado de carga y error
   if (loading) {
     return <div className="loading">Cargando detalles de la carga...</div>;
   }
@@ -210,13 +211,19 @@ function CargaDetailPage() {
 
         <h3>Palets Asociados:</h3>
         <div className="associated-pallets-detail-display">
-          {Array.isArray(carga.associatedPaletsData) &&
-          carga.associatedPaletsData.length > 0 ? (
-            carga.associatedPaletsData.map((palet) => (
+          {/* Usa los 'associatedPaletsData' calculados con useMemo */}
+          {associatedPaletsData.length > 0 ? (
+            associatedPaletsData.map((palet) => (
               <div
                 key={palet.id}
-                className="associated-pallet-div-detail clickable-palet" // Añade la clase 'clickable-palet'
-                style={{ backgroundColor: getPaletColor(palet.tipoGenero) }}
+                // Clase condicional para el borde negro
+                className={`associated-pallet-div-detail clickable-palet ${
+                  palet.tipoPalet !== "Europeo" ? "non-europeo-border" : ""
+                }`}
+                style={{
+                  backgroundColor: getPaletColor(palet.tipoGenero),
+                  color: "black", // Color de letra a negro
+                }}
                 title={`Palet Nº ${palet.numeroPalet} (${palet.tipoGenero})`}
                 onClick={() => handlePaletClick(palet.id)} // Agrega el evento onClick
               >

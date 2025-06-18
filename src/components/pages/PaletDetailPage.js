@@ -4,11 +4,30 @@ import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../../db/firebase-config";
 import { doc, getDoc } from "firebase/firestore";
 import "../../App.css"; // Estilos generales
+import useForm from "../../hooks/useForm"; // ¡CAMBIO! Importa el custom hook useForm
 
 function PaletDetailPage() {
   const { paletId } = useParams(); // Obtiene el ID del palet de la URL
   const navigate = useNavigate();
-  const [palet, setPalet] = useState(null);
+
+  // ¡CAMBIO CLAVE! Usamos el custom hook useForm
+  // Aunque actualmente solo es una página de detalle, la integración de useForm
+  // prepara el componente para futuras funcionalidades de edición sin reescribir mucho código.
+  const {
+    formData, // formData contendrá los datos del palet
+    setFormData, // setFormData se usa para inicializar el formulario con los datos cargados
+    // handleChange, selectedFile, imagePreviewUrl, resetForm no son necesarios para solo visualización,
+    // pero serían útiles si se añadiera un formulario de edición aquí.
+  } = useForm({
+    cargaAsociadaId: "",
+    nombreBarco: "",
+    fechaCarga: "",
+    numeroPalet: null,
+    tipoPalet: "",
+    tipoGenero: "",
+    createdAt: null, // Para manejar la fecha de creación
+  });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -38,7 +57,20 @@ function PaletDetailPage() {
         const paletDocSnap = await getDoc(paletDocRef);
 
         if (paletDocSnap.exists()) {
-          setPalet({ id: paletDocSnap.id, ...paletDocSnap.data() });
+          const paletData = paletDocSnap.data();
+          // ¡CAMBIO! Usamos setFormData del hook para poblar el formulario
+          setFormData({
+            cargaAsociadaId: paletData.cargaAsociadaId || "",
+            nombreBarco: paletData.nombreBarco || "",
+            fechaCarga: paletData.fechaCarga || "",
+            numeroPalet: paletData.numeroPalet || null,
+            tipoPalet: paletData.tipoPalet || "",
+            tipoGenero: paletData.tipoGenero || "",
+            // Convierte el Timestamp de Firestore a un objeto Date de JS
+            createdAt: paletData.createdAt
+              ? paletData.createdAt.toDate()
+              : null,
+          });
         } else {
           setError("Palet no encontrado.");
         }
@@ -51,7 +83,7 @@ function PaletDetailPage() {
     };
 
     fetchPaletData();
-  }, [paletId]); // Se re-ejecuta si el paletId cambia en la URL
+  }, [paletId, setFormData]); // Dependencias: paletId para re-fetch, setFormData para el hook
 
   if (loading) {
     return <div className="loading">Cargando detalles del palet...</div>;
@@ -68,8 +100,14 @@ function PaletDetailPage() {
     );
   }
 
-  if (!palet) {
-    return <div className="loading">No se encontró el palet.</div>;
+  // Usamos formData como nuestro objeto de palet para renderizar
+  const palet = formData;
+
+  if (!palet || (!palet.numeroPalet && !palet.tipoPalet && !palet.tipoGenero)) {
+    // Si formData está vacío o no tiene datos clave después de la carga
+    return (
+      <div className="loading">No se encontraron datos para el palet.</div>
+    );
   }
 
   return (
@@ -104,12 +142,10 @@ function PaletDetailPage() {
           <p>
             <strong>Fecha de Carga:</strong> {palet.fechaCarga || "N/A"}
           </p>
-          {/* Puedes añadir más detalles si los tienes en tu documento de palet */}
+          {/* Muestra la fecha de creación en un formato legible */}
           <p>
             <strong>Fecha de Creación:</strong>{" "}
-            {palet.createdAt
-              ? new Date(palet.createdAt.toDate()).toLocaleDateString()
-              : "N/A"}
+            {palet.createdAt ? palet.createdAt.toLocaleDateString() : "N/A"}
           </p>
         </div>
       </div>
@@ -121,6 +157,10 @@ function PaletDetailPage() {
       >
         Volver
       </button>
+      {/* En el futuro, aquí podría ir un botón para editar: */}
+      {/* <button className="submit-button" onClick={() => navigate(`/editpalet/${paletId}`)} style={{ marginTop: '20px', marginLeft: '10px' }}>
+        Editar Palet
+      </button> */}
     </div>
   );
 }
